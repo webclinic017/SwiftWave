@@ -15,9 +15,11 @@ If you like to know why Swiftwave created and what is special in it, check this 
 Checkout [this guide](https://swiftwave.org/docs/installation) to install swiftwave on your server and deploy your applications.
 
 ### Community
-We would love to hear from you and brainstorm on ideas! Join our slack channel.
+We would love to hear from you and brainstorm on ideas! Join our discord channel.
 
-[![Slack](https://img.shields.io/badge/chat-on_slack-purple.svg?style=for-the-badge&logo=slack)](https://slack.swiftwave.org/)
+[![Discord Banner 2](https://discord.com/api/guilds/1303974360616407107/widget.png?style=banner2)](https://community.swiftwave.org/)
+
+[Join Discord](https://community.swiftwave.org)
 
 ### Support
 - Use Swiftwave to deploy and manage your projects.

@@ -169,7 +169,7 @@ Welcome to the documentation of the Swiftwave GraphQL API.
 SwiftWave is a self-hosted lightweight PaaS solution to deploy and manage your applications on any VPS without any hassle 👀
 
 ## Want to support us?
-Star ⭐ our [GitHub repository](https://github.com/swiftwave-org/swiftwave) and join our [Slack community](https://join.slack.com/t/swiftwave-team/shared_invite/zt-21n86aslx-aAvBi3hv1GigVA_XoXiu4Q) to get help and support from our team.\`,
+Star ⭐ our [GitHub repository](https://github.com/swiftwave-org/swiftwave) and join our [Discord community](https://community.swiftwave.org) to get help and support from our team.\`,
                     }
                   ],
             }
