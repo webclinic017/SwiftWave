@@ -18,4 +18,4 @@ build_agent:
 	cd $(AGENT_DIR) && go build -o swiftwave-agent .
 
 install_agent: build_agent 
-	cp $(AGENT_DIR)/agent /usr/bin/swiftwave-agent
+	cp $(AGENT_DIR)/swiftwave-agent /usr/bin/swiftwave-agent
