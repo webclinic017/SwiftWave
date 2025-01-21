@@ -1,0 +1,6 @@
+.vscode
+docs
+agent.db
+agent.db-*
+docs.txt
+agent
