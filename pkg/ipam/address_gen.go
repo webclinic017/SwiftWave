@@ -105,6 +105,14 @@ func GenerateWireguardIP(template string, serverId int) (string, error) {
 	return binaryFormatToIP(templateString)
 }
 
+func GenerateWireguardSubnetCIDR(template string) (int, error) {
+	t, err := parseTemplate(template)
+	if err != nil {
+		return 0, err
+	}
+	return t.ServerBitsStartIndex, nil
+}
+
 func GenerateWireguardSubnet(template string) (string, error) {
 	t, err := parseTemplate(template)
 	if err != nil {
