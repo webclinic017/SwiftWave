@@ -10,7 +10,5 @@ func main() {
 	if err := MigrateDatabase(); err != nil {
 		panic(err)
 	}
-	go startHttpServer()
-	go startDnsServer()
-	<-make(chan struct{})
+	rootCmd.Execute()
 }

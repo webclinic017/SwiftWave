@@ -47,7 +47,7 @@ func MigrateDatabase() error {
 	if rwDB == nil {
 		return fmt.Errorf("read-write database instance is nil or not initialized")
 	}
-	err := rwDB.AutoMigrate(&DNSEntry{}, &Volume{}, &VolumeMount{}, &EnvironmentVariable{}, &Container{})
+	err := rwDB.AutoMigrate(&AgentConfig{}, &DNSEntry{}, &Volume{}, &VolumeMount{}, &EnvironmentVariable{}, &Container{})
 	if err != nil {
 		return fmt.Errorf("failed to migrate Agent table: %v", err)
 	}
