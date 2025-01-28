@@ -45,6 +45,14 @@ func (v *Volume) Create() error {
 	if err := v.Validate(); err != nil {
 		return err
 	}
+	// Check if the volume already exists
+	exists, err := ExistsVolume(v.UUID)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return fmt.Errorf("volume already exists")
+	}
 	// Create the record
 	if err := rwDB.Create(v).Error; err != nil {
 		return err

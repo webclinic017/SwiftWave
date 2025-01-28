@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/docker/docker/api/types/volume"
@@ -11,7 +12,7 @@ import (
 var volumeBindsDefaultPath string
 
 func init() {
-	volumePath, err := filepath.Abs("./volumes")
+	volumePath, err := filepath.Abs("/home/tanmoy/docker-volumes")
 	if err != nil {
 		fmt.Println("Failed to get absolute path for volumes directory")
 		panic(err)
@@ -45,7 +46,7 @@ func (v *Volume) RemoveVolume(deleteDirectory bool) error {
 	// Remove volume directory
 	if v.Type == LocalVolume && deleteDirectory {
 		path := v.LocalVolumeFullPath()
-		RemovePath(path)
+		_ = os.RemoveAll(path)
 	}
 	return nil
 }
@@ -79,7 +80,7 @@ func (v *Volume) Restore(downloadUrl string) error {
 
 func createLocalVolume(v *Volume) error {
 	// create volume directory
-	err := CreateDirectoryWithOptions(v.LocalVolumeFullPath(), false, 0755)
+	err := os.MkdirAll(v.LocalVolumeFullPath(), 0755)
 	if err != nil {
 		return err
 	}
@@ -88,6 +89,7 @@ func createLocalVolume(v *Volume) error {
 		Name:   v.UUID,
 		Driver: "local",
 		DriverOpts: map[string]string{
+			"type":   "volume",
 			"o":      "bind",
 			"device": v.LocalVolumeFullPath(),
 		},

@@ -63,7 +63,7 @@ func startDnsServer() {
 		}
 		_ = w.WriteMsg(m)
 	})
-	server := &dns.Server{Addr: "10.0.1.1:53", Net: "udp"}
+	server := &dns.Server{Addr: "127.0.0.1:5353", Net: "udp"}
 	log.Printf("Starting DNS server at %s\n", server.Addr)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("Failed to start DNS server: %s\n ", err)
