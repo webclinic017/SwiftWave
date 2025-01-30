@@ -5,3 +5,4 @@ agent.db-*
 docs.txt
 agent
 swiftwave-agent
+*.bak

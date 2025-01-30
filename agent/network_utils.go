@@ -1,5 +1,13 @@
 package main
 
+import (
+	"context"
+	"fmt"
+
+	"github.com/docker/docker/api/types/network"
+	"gorm.io/gorm"
+)
+
 /*
 * Every time we restart this swiftwave agent,
 * There might be 5~10 seconds of downtime.
@@ -8,6 +16,38 @@ package main
 *
 * It will happen also in case of any changes in the network configuration.
  */
+
+const DockerNetworkName = "swiftwave_container_network"
+const PreroutingChainName = "SWIFTWAVE_PREROUTING"
+const PostroutingChainName = "SWIFTWAVE_POSTROUTING"
+const ForwardChainName = "SWIFTWAVE_FORWARD"
+
+func (c *AgentConfig) CreateDockerNetwork(db *gorm.DB) error {
+	// Check if already exists
+	_, err := dockerClient.NetworkInspect(context.TODO(), DockerNetworkName, network.InspectOptions{})
+	if err == nil {
+		return fmt.Errorf("%s already exists", DockerNetworkName)
+	}
+	res, err := dockerClient.NetworkCreate(context.TODO(), DockerNetworkName, network.CreateOptions{
+		Driver: "bridge",
+		IPAM: &network.IPAM{
+			Driver: "default",
+			Config: []network.IPAMConfig{
+				{
+					Subnet:  c.DockerNetwork.Subnet,
+					Gateway: c.DockerNetwork.GatewayAddress,
+				},
+			},
+		},
+		Attachable: true,
+	})
+	if err != nil {
+		return err
+	}
+	c.DockerNetwork.BridgeId = fmt.Sprintf("br-%s", res.ID[:12])
+	err = SetConfig(db, c)
+	return err
+}
 
 // type NetworkManager struct {
 // 	DockerNetworkName       string
@@ -257,92 +297,92 @@ package main
 // }
 
 // func (n *NetworkManager) ConfigureWireguard() error {
-	// // Create WireGuard wireguardClient
-	// wireguardClient, err := wgctrl.New()
-	// if err != nil {
-	// 	return fmt.Errorf("failed to create wireguard client: %v", err)
-	// }
-	// defer wireguardClient.Close()
+// // Create WireGuard wireguardClient
+// wireguardClient, err := wgctrl.New()
+// if err != nil {
+// 	return fmt.Errorf("failed to create wireguard client: %v", err)
+// }
+// defer wireguardClient.Close()
 
-	// privateKey, err := wgtypes.ParseKey(n.WireguardInterfacePrivateKey)
-	// if err != nil {
-	// 	return err
-	// }
+// privateKey, err := wgtypes.ParseKey(n.WireguardInterfacePrivateKey)
+// if err != nil {
+// 	return err
+// }
 
-	// peerConfig := []wgtypes.PeerConfig{}
+// peerConfig := []wgtypes.PeerConfig{}
 
-	// for _, peer := range n.WireguardPeers {
-	// 	publicKey, err := wgtypes.ParseKey(peer.PublicKey)
-	// 	if err != nil {
-	// 		return err
-	// 	}
+// for _, peer := range n.WireguardPeers {
+// 	publicKey, err := wgtypes.ParseKey(peer.PublicKey)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// 	allowedIPs := []net.IPNet{}
-	// 	for _, ip := range peer.AllowedIPs {
-	// 		_, ipNet, err := net.ParseCIDR(ip)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		allowedIPs = append(allowedIPs, *ipNet)
-	// 	}
+// 	allowedIPs := []net.IPNet{}
+// 	for _, ip := range peer.AllowedIPs {
+// 		_, ipNet, err := net.ParseCIDR(ip)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		allowedIPs = append(allowedIPs, *ipNet)
+// 	}
 
-	// 	persistentKeepaliveDuration := time.Second * time.Duration(peer.PersistentKeepalive)
+// 	persistentKeepaliveDuration := time.Second * time.Duration(peer.PersistentKeepalive)
 
-	// 	peerConfig = append(peerConfig, wgtypes.PeerConfig{
-	// 		PublicKey:                   publicKey,
-	// 		AllowedIPs:                  allowedIPs,
-	// 		Endpoint:                    &net.UDPAddr{IP: net.ParseIP(peer.EndpointIP), Port: peer.EndpointPort},
-	// 		PersistentKeepaliveInterval: &persistentKeepaliveDuration,
-	// 		Remove:                      false,
-	// 	})
-	// }
+// 	peerConfig = append(peerConfig, wgtypes.PeerConfig{
+// 		PublicKey:                   publicKey,
+// 		AllowedIPs:                  allowedIPs,
+// 		Endpoint:                    &net.UDPAddr{IP: net.ParseIP(peer.EndpointIP), Port: peer.EndpointPort},
+// 		PersistentKeepaliveInterval: &persistentKeepaliveDuration,
+// 		Remove:                      false,
+// 	})
+// }
 
-	// err = wireguardClient.ConfigureDevice(n.WireguardInterfaceName, wgtypes.Config{
-	// 	PrivateKey:   &privateKey,
-	// 	ListenPort:   &n.WireguardListenerPort,
-	// 	Peers:        peerConfig,
-	// 	ReplacePeers: true,
-	// })
-	// if err != nil {
-	// 	return err
-	// }
+// err = wireguardClient.ConfigureDevice(n.WireguardInterfaceName, wgtypes.Config{
+// 	PrivateKey:   &privateKey,
+// 	ListenPort:   &n.WireguardListenerPort,
+// 	Peers:        peerConfig,
+// 	ReplacePeers: true,
+// })
+// if err != nil {
+// 	return err
+// }
 
-	// // Parse wireguard interface address CIDR
-	// _, wgNet, err := net.ParseCIDR(n.WireguardInterfaceAddress)
-	// if err != nil {
-	// 	return err
-	// }
+// // Parse wireguard interface address CIDR
+// _, wgNet, err := net.ParseCIDR(n.WireguardInterfaceAddress)
+// if err != nil {
+// 	return err
+// }
 
-	// for _, peer := range n.WireguardPeers {
-	// 	for _, ipStr := range peer.AllowedIPs {
-	// 		ip, dst, err := net.ParseCIDR(ipStr)
-	// 		if err != nil {
-	// 			return err
-	// 		}
+// for _, peer := range n.WireguardPeers {
+// 	for _, ipStr := range peer.AllowedIPs {
+// 		ip, dst, err := net.ParseCIDR(ipStr)
+// 		if err != nil {
+// 			return err
+// 		}
 
-	// 		// Skip if IP is in same subnet as wireguard interface
-	// 		if wgNet.Contains(ip) {
-	// 			fmt.Println("Skipping IP in same subnet as wireguard interface")
-	// 			continue
-	// 		}
+// 		// Skip if IP is in same subnet as wireguard interface
+// 		if wgNet.Contains(ip) {
+// 			fmt.Println("Skipping IP in same subnet as wireguard interface")
+// 			continue
+// 		}
 
-	// 		fmt.Println("Adding route for allowed IP:", ip)
+// 		fmt.Println("Adding route for allowed IP:", ip)
 
-	// 		// Add route for this allowed IP through wireguard interface
-	// 		link, err := netlink.LinkByName(n.WireguardInterfaceName)
-	// 		if err != nil {
-	// 			return err
-	// 		}
+// 		// Add route for this allowed IP through wireguard interface
+// 		link, err := netlink.LinkByName(n.WireguardInterfaceName)
+// 		if err != nil {
+// 			return err
+// 		}
 
-	// 		err = netlink.RouteAdd(&netlink.Route{
-	// 			LinkIndex: link.Attrs().Index,
-	// 			Dst:       dst,
-	// 		})
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 	}
-	// }
+// 		err = netlink.RouteAdd(&netlink.Route{
+// 			LinkIndex: link.Attrs().Index,
+// 			Dst:       dst,
+// 		})
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+// }
 
 // 	return nil
 // }

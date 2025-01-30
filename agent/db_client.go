@@ -57,7 +57,7 @@ func MigrateDatabase() error {
 func OpenSqliteDatabase(file string, readonly bool) (*gorm.DB, error) {
 	dbString := SQLiteDbString(file, readonly)
 	gormDb, err := gorm.Open(sqlite.Open(dbString), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		return nil, err

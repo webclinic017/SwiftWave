@@ -7,6 +7,7 @@ import (
 )
 
 type AgentConfig struct {
+	ID              uint                `gorm:"primaryKey"`
 	WireguardConfig WireguardConfig     `json:"wireguard_config" gorm:"embedded;embeddedPrefix:wireguard_"`
 	DockerNetwork   DockerNetworkConfig `json:"docker_network" gorm:"embedded;embeddedPrefix:docker_network_"`
 }
@@ -28,7 +29,10 @@ func GetConfig() (*AgentConfig, error) {
 	var config AgentConfig
 	if err := rDB.First(&config).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &AgentConfig{}, nil
+			return &AgentConfig{
+				WireguardConfig: WireguardConfig{},
+				DockerNetwork:   DockerNetworkConfig{},
+			}, nil
 		} else {
 			return nil, errors.New("error getting config")
 		}
@@ -36,16 +40,16 @@ func GetConfig() (*AgentConfig, error) {
 	return &config, nil
 }
 
-func SetConfig(config *AgentConfig) error {
+func SetConfig(db *gorm.DB, config *AgentConfig) error {
 	// Check if the config already exists
 	var count int64
-	if err := rDB.Model(&AgentConfig{}).Count(&count).Error; err != nil {
+	if err := db.Model(&AgentConfig{}).Count(&count).Error; err != nil {
 		return err
 	}
+	config.ID = 1 // set so that it can be updated
 	if count > 0 {
 		// Update the existing config
-		return rDB.Save(config).Error
+		return db.Save(config).Error
 	}
-	// Create a new config
-	return rDB.Create(config).Error
+	return db.Create(config).Error
 }
