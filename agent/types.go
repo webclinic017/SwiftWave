@@ -21,3 +21,7 @@ type FileInfo struct {
 	GID          uint        `json:"gid"`
 	IsDir        bool        `json:"is_dir"`
 }
+
+type WireguardPeerUpdate struct {
+	EndpointIP string `json:"endpoint_ip"`
+}

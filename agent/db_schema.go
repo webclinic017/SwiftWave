@@ -81,3 +81,9 @@ type DNSEntry struct {
 	Domain string `gorm:"column:domain;index" json:"domain"`
 	IP     string `gorm:"column:ip;index" json:"ip"`
 }
+
+type WireguardPeer struct {
+	PublicKey  string `gorm:"public_key;primaryKey"`
+	AllowedIPs string `gorm:"allowed_ips"`
+	EndpointIP string `gorm:"endpoint_ip"`
+}

@@ -18,6 +18,7 @@ type WireguardConfig struct {
 }
 
 type DockerNetworkConfig struct {
+	BridgeId       string `json:"bridge_id" gorm:"column:bridge_id"`
 	GatewayAddress string `json:"gateway_address" gorm:"column:gateway_address"`
 	Subnet         string `json:"subnet" gorm:"column:subnet"`
 	CIDR           int    `json:"cidr" gorm:"column:cidr"`
@@ -28,6 +29,8 @@ func GetConfig() (*AgentConfig, error) {
 	if err := rDB.First(&config).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &AgentConfig{}, nil
+		} else {
+			return nil, errors.New("error getting config")
 		}
 	}
 	return &config, nil

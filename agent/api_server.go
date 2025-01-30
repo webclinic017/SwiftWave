@@ -55,6 +55,11 @@ func startHttpServer() {
 	e.POST("/dns", createDNSRecord)
 
 	// Wireguard Peer API
+	e.GET("/wireguard/peers", fetchAllWireguardPeers)
+	e.POST("/wireguard/peers", createWireguardPeer)
+	e.DELETE("/wireguard/peers/:publicKey", deleteWireguardPeer)
+	e.PUT("/wireguard/peers/:publicKey", updateWireguardPeer)
+	e.POST("/wireguard/peers/configure", configureWireguardPeers)
 
 	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		e.Logger.Fatal(err)
