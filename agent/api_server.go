@@ -61,6 +61,11 @@ func startHttpServer() {
 	e.PUT("/wireguard/peers/:publicKey", updateWireguardPeer)
 	e.POST("/wireguard/peers/configure", configureWireguardPeers)
 
+	// Static Route API
+	e.GET("/static-routes", fetchAllStaticRoutes)
+	e.POST("/static-routes", createStaticRoute)
+	e.DELETE("/static-routes", deleteStaticRoute) // ?destination=x.x.x.x/x
+
 	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		e.Logger.Fatal(err)
 	}

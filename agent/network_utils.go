@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
+	"strings"
 
 	"github.com/docker/docker/api/types/network"
+	"github.com/vishvananda/netlink"
 	"gorm.io/gorm"
 )
 
@@ -47,6 +50,59 @@ func (c *AgentConfig) CreateDockerNetwork(db *gorm.DB) error {
 	c.DockerNetwork.BridgeId = fmt.Sprintf("br-%s", res.ID[:12])
 	err = SetConfig(db, c)
 	return err
+}
+
+func (c *AgentConfig) SetupWireguardInterface() error {
+	// If it already exists, return
+
+	return nil
+}
+
+func SetupStaticRoutes() error {
+	return nil
+}
+
+func SetupIptables() error {
+	return nil
+}
+
+func (s *StaticRoute) AddRoute() error {
+	_, ipnet, err := net.ParseCIDR(s.Destination)
+	if err != nil {
+		return fmt.Errorf("invalid ip address: %s", s.Destination)
+	}
+	gateway := net.ParseIP(s.Gateway)
+	if gateway == nil {
+		return fmt.Errorf("invalid gateway ip address: %s", s.Gateway)
+	}
+	err = netlink.RouteAdd(&netlink.Route{
+		Dst: ipnet,
+		Gw:  gateway,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "file exists") {
+			return nil
+		}
+		return fmt.Errorf("failed to add route: %v", err)
+	}
+	return nil
+}
+
+func (s *StaticRoute) RemoveRoute() error {
+	_, ipnet, err := net.ParseCIDR(s.Destination)
+	if err != nil {
+		return fmt.Errorf("invalid ip address: %s", s.Destination)
+	}
+	err = netlink.RouteDel(&netlink.Route{
+		Dst: ipnet,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "no such process") {
+			return nil
+		}
+		return fmt.Errorf("failed to remove route: %v", err)
+	}
+	return nil
 }
 
 // type NetworkManager struct {

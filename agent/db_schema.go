@@ -87,3 +87,14 @@ type WireguardPeer struct {
 	AllowedIPs string `gorm:"allowed_ips"`
 	EndpointIP string `gorm:"endpoint_ip"`
 }
+
+type StaticRoute struct {
+	Destination string `gorm:"destination"` // ip/cidr format
+	Gateway     string `gorm:"gateway"`
+}
+
+type NFRule struct {
+	Table string `gorm:"table"`
+	Chain string `gorm:"chain"`
+	Rule  string `gorm:"rule"`
+}

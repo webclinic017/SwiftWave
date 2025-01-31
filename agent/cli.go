@@ -45,6 +45,17 @@ var rootCmd = &cobra.Command{
 var startCmd = &cobra.Command{
 	Use: "start",
 	Run: func(cmd *cobra.Command, args []string) {
+		// Pre-setup before starting the main process
+		config, err := GetConfig()
+		if err != nil {
+			cmd.Println("Failed to fetch config")
+			cmd.PrintErr(err.Error())
+			return
+		}
+		config.SetupWireguardInterface()
+		SetupStaticRoutes()
+		SetupIptables()
+		// Start main process
 		go startHttpServer()
 		go startDnsServer()
 		<-make(chan struct{})
