@@ -58,8 +58,16 @@ func (c *AgentConfig) SetupWireguardInterface() error {
 	return nil
 }
 
-func SetupStaticRoutes() error {
-	return nil
+func SetupStaticRoutes() {
+	records, err := FetchAllStaticRoutes()
+	if err != nil {
+		fmt.Printf("failed to fetch static routes: %s\n", err.Error())
+	}
+	for _, record := range records {
+		if err := record.AddRoute(); err != nil {
+			fmt.Println(err.Error())
+		}
+	}
 }
 
 func SetupIptables() error {
