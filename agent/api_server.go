@@ -64,7 +64,14 @@ func startHttpServer() {
 	// Static Route API
 	e.GET("/static-routes", fetchAllStaticRoutes)
 	e.POST("/static-routes", createStaticRoute)
-	e.DELETE("/static-routes", deleteStaticRoute) // ?destination=x.x.x.x/x
+	e.GET("/static-routes/:ip/:cidr", fetchStaticRouteByDestination)
+	e.DELETE("/static-routes/:ip/:cidr", deleteStaticRoute)
+
+	// NF Rule API
+	e.GET("/nf-rules", fetchAllNFRules)
+	e.POST("/nf-rules", createNFRule)
+	e.GET("/nf-rules/:uuid", getNFRule)
+	e.DELETE("/nf-rules/:uuid", deleteNFRule)
 
 	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		e.Logger.Fatal(err)

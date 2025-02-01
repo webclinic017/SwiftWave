@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 )
@@ -95,4 +96,82 @@ func FetchAllStaticRoutes() ([]StaticRoute, error) {
 		return nil, err
 	}
 	return routes, nil
+}
+
+func (r *NFRule) Validate() error {
+	if r == nil {
+		return fmt.Errorf("provided record is nil")
+	}
+	if r.Table == "" {
+		return fmt.Errorf("table is required for nf rule")
+	}
+	if r.Chain == "" {
+		return fmt.Errorf("chain is required for nf rule")
+	}
+	if r.Args == "" {
+		return fmt.Errorf("args is required for nf rule")
+	}
+	// Args should be a valid json string
+	var args []string
+	err := json.Unmarshal([]byte(r.Args), &args)
+	if err != nil {
+		return fmt.Errorf("invalid args: %v", err)
+	}
+	// args should not be empty
+	if len(args) == 0 {
+		return fmt.Errorf("args should not be empty")
+	}
+	return nil
+}
+
+func (r *NFRule) Create() error {
+	if err := r.Validate(); err != nil {
+		return err
+	}
+	tx := rwDB.Begin()
+	defer tx.Rollback()
+	err := tx.Create(r).Error
+	if err != nil {
+		return err
+	}
+	err = r.AddRule()
+	if err != nil {
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+func (r *NFRule) Delete() error {
+	if err := r.Validate(); err != nil {
+		return err
+	}
+	tx := rwDB.Begin()
+	defer tx.Rollback()
+	err := tx.Delete(&NFRule{}).Where("uuid = ?", r.UUID).Error
+	if err != nil {
+		return err
+	}
+	err = r.RemoveRule()
+	if err != nil {
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+func FetchAllNFRules() ([]NFRule, error) {
+	var rules []NFRule
+	if err := rDB.Find(&rules).Error; err != nil {
+		return nil, err
+	}
+	return rules, nil
+}
+
+func FetchNFRuleByUUID(uuid string) (*NFRule, error) {
+	var rule NFRule
+	if err := rDB.Where("uuid = ?", uuid).First(&rule).Error; err != nil {
+		return nil, err
+	}
+	return &rule, nil
 }

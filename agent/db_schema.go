@@ -94,7 +94,8 @@ type StaticRoute struct {
 }
 
 type NFRule struct {
+	UUID  string `gorm:"uuid;primaryKey"`
 	Table string `gorm:"table"`
 	Chain string `gorm:"chain"`
-	Rule  string `gorm:"rule"`
+	Args  string `gorm:"args;default:'[]'"` // json string
 }

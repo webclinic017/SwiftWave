@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/coreos/go-iptables/iptables"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/spf13/cobra"
@@ -18,6 +17,7 @@ func init() {
 	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(getConfig)
 	rootCmd.AddCommand(syncDockerBridge)
+	rootCmd.AddCommand(dbMigrate)
 	rootCmd.AddCommand(cleanup)
 
 	setupCmd.Flags().String("wireguard-private-key", "", "Wireguard private key")
@@ -52,7 +52,7 @@ var startCmd = &cobra.Command{
 			cmd.PrintErr(err.Error())
 			return
 		}
-		config.SetupWireguardInterface()
+		config.SetupWireguard()
 		SetupStaticRoutes()
 		SetupIptables()
 		// Start main process
@@ -219,20 +219,30 @@ var cleanup = &cobra.Command{
 			}
 		}
 		// Flush all the iptables rules
-		ipt, err := iptables.New()
-		if err != nil {
-			cmd.PrintErr(err.Error())
-			return
-		}
-		err = ipt.ClearAll()
-		if err != nil {
-			cmd.PrintErr(err.Error())
-			return
-		}
+		_ = IPTablesClient.ClearChain("filter", FilterInputChainName)
+		_ = IPTablesClient.ClearChain("filter", FilterOutputChainName)
+		_ = IPTablesClient.ClearChain("filter", FilterForwardChainName)
+		_ = IPTablesClient.ClearChain("nat", NatPreroutingChainName)
+		_ = IPTablesClient.ClearChain("nat", NatPostroutingChainName)
+		_ = IPTablesClient.ClearChain("nat", NatInputChainName)
+		_ = IPTablesClient.ClearChain("nat", NatOutputChainName)
 		// Backup and remove the database file
 		moveDBFilesToBackup()
 		// Done
 		cmd.Println("Cleanup completed")
+	},
+}
+
+var dbMigrate = &cobra.Command{
+	Use: "db-migrate",
+	Run: func(cmd *cobra.Command, args []string) {
+		// Migrate the database
+		err := MigrateDatabase()
+		if err != nil {
+			cmd.PrintErr(err.Error())
+			return
+		}
+		cmd.Println("Database migrated")
 	},
 }
 

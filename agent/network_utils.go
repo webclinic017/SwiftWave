@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"strings"
 
+	"github.com/coreos/go-iptables/iptables"
 	"github.com/docker/docker/api/types/network"
 	"github.com/vishvananda/netlink"
+	"golang.zx2c4.com/wireguard/wgctrl"
 	"gorm.io/gorm"
 )
 
@@ -21,9 +24,26 @@ import (
  */
 
 const DockerNetworkName = "swiftwave_container_network"
-const PreroutingChainName = "SWIFTWAVE_PREROUTING"
-const PostroutingChainName = "SWIFTWAVE_POSTROUTING"
-const ForwardChainName = "SWIFTWAVE_FORWARD"
+
+const FilterInputChainName = "swiftwave_filter_input"
+const FilterOutputChainName = "swiftwave_filter_output"
+const FilterForwardChainName = "swiftwave_filter_forward"
+const NatPreroutingChainName = "swiftwave_nat_prerouting"
+const NatPostroutingChainName = "swiftwave_nat_postrouting"
+const NatInputChainName = "swiftwave_nat_input"
+const NatOutputChainName = "swiftwave_nat_output"
+
+var IPTablesClient *iptables.IPTables
+
+func init() {
+	iptablesInstance, err := iptables.New()
+	if err != nil {
+		panic(err)
+	}
+	IPTablesClient = iptablesInstance
+}
+
+// ------------- Docker Network -------------
 
 func (c *AgentConfig) CreateDockerNetwork(db *gorm.DB) error {
 	// Check if already exists
@@ -52,11 +72,56 @@ func (c *AgentConfig) CreateDockerNetwork(db *gorm.DB) error {
 	return err
 }
 
-func (c *AgentConfig) SetupWireguardInterface() error {
-	// If it already exists, return
+// ------------- Wireguard -------------
 
+func (c *AgentConfig) SetupWireguard() error {
+	// Check if wireguard interface already exists
+	_, err := netlink.LinkByName(WireguardInterfaceName)
+	if err == nil {
+		return nil
+	}
+	// If it already exists, return
+	client, err := wgctrl.New()
+	if err != nil {
+		return fmt.Errorf("failed to create wireguard client: %v", err)
+	}
+	defer client.Close()
+	// Create wireguard interface
+	wg := &netlink.Wireguard{
+		LinkAttrs: netlink.LinkAttrs{
+			Name: WireguardInterfaceName,
+			MTU:  1420,
+		},
+	}
+	err = netlink.LinkAdd(wg)
+	if err != nil {
+		return fmt.Errorf("failed to add wireguard interface: %v", err)
+	}
+
+	// Add IP address to wireguard interface
+	addr, err := netlink.ParseAddr(c.WireguardConfig.Address)
+	if err != nil {
+		return fmt.Errorf("failed to parse wireguard address: %v", err)
+	}
+	err = netlink.AddrAdd(wg, addr)
+	if err != nil {
+		return fmt.Errorf("failed to add wireguard address: %v", err)
+	}
+
+	// Set interface up
+	err = netlink.LinkSetUp(wg)
+	if err != nil {
+		return fmt.Errorf("failed to set wireguard interface up: %v", err)
+	}
+
+	err = ConfigureWireguardPeers()
+	if err != nil {
+		return fmt.Errorf("failed to configure wireguard peers: %v", err)
+	}
 	return nil
 }
+
+// ------------- Static Routes -------------
 
 func SetupStaticRoutes() {
 	records, err := FetchAllStaticRoutes()
@@ -68,10 +133,6 @@ func SetupStaticRoutes() {
 			fmt.Println(err.Error())
 		}
 	}
-}
-
-func SetupIptables() error {
-	return nil
 }
 
 func (s *StaticRoute) AddRoute() error {
@@ -113,340 +174,71 @@ func (s *StaticRoute) RemoveRoute() error {
 	return nil
 }
 
-// type NetworkManager struct {
-// 	DockerNetworkName       string
-// 	DockerNetworkSubnet     string
-// 	DockerNetworkGateway    string
-// 	DockerNetworkBridgeName string
+// ------------- NF Rules -------------
 
-// 	WireguardInterfaceName       string
-// 	WireguardListenerPort        int
-// 	WireguardInterfaceAddress    string
-// 	WireguardInterfaceMTU        int
-// 	WireguardInterfacePrivateKey string
-// 	WireguardPeers               []WireguardPeer
+func SetupIptablesChains() error {
+	filterChains := []string{FilterInputChainName, FilterOutputChainName, FilterForwardChainName}
+	natChains := []string{NatPreroutingChainName, NatPostroutingChainName}
+	// Create filter chains
+	for _, chain := range filterChains {
+		exists, err := IPTablesClient.ChainExists("filter", chain)
+		if err != nil {
+			return fmt.Errorf("failed to check if chain exists: %v", err)
+		}
+		if !exists {
+			err = IPTablesClient.NewChain("filter", chain)
+			if err != nil {
+				return fmt.Errorf("failed to create chain: %v", err)
+			}
+		}
+	}
+	// Create nat chains
+	for _, chain := range natChains {
+		exists, err := IPTablesClient.ChainExists("nat", chain)
+		if err != nil {
+			return fmt.Errorf("failed to check if chain exists: %v", err)
+		}
+		if !exists {
+			err = IPTablesClient.NewChain("nat", chain)
+			if err != nil {
+				return fmt.Errorf("failed to create chain: %v", err)
+			}
+		}
+	}
+	return nil
+}
 
-// 	PostRoutingChainName string
-// 	PreRoutingChainName  string
-// 	ForwardChainName     string
-// }
+func SetupIptables() error {
+	rules, err := FetchAllNFRules()
+	if err != nil {
+		return err
+	}
+	for _, rule := range rules {
+		err = rule.AddRule()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
-// func NewNetworkManager() (*NetworkManager, error) {
-// 	config, err := GetConfig()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &NetworkManager{
-// 		DockerNetworkName:    "swiftwave_overlay",
-// 		DockerNetworkSubnet:  fmt.Sprintf("%s/%d", config.DockerNetwork.Subnet, config.DockerNetwork.CIDR),
-// 		DockerNetworkGateway: config.DockerNetwork.GatewayAddress,
+func (r *NFRule) AddRule() error {
+	return IPTablesClient.AppendUnique(r.Table, r.Chain, r.ArgList()...)
+}
 
-// 		WireguardInterfaceName:       "swiftwave_wireguard",
-// 		WireguardListenerPort:        51820,
-// 		WireguardInterfaceAddress:    fmt.Sprintf("%s/%d", config.WireguardConfig.Address, config.WireguardConfig.CIDR),
-// 		WireguardInterfaceMTU:        1420,
-// 		WireguardInterfacePrivateKey: config.WireguardConfig.PrivateKey,
-// 		WireguardPeers:               []WireguardPeer{},
-// 		PreRoutingChainName:          "SWIFTWAVE_PREROUTING",
-// 		PostRoutingChainName:         "SWIFTWAVE_POSTROUTING",
-// 		ForwardChainName:             "SWIFTWAVE_FORWARD",
-// 	}, nil
-// }
+func (r *NFRule) ArgList() []string {
+	var args []string
+	err := json.Unmarshal([]byte(r.Args), &args)
+	if err != nil {
+		return []string{}
+	}
+	return args
+}
 
-// func (n *NetworkManager) Init() error {
-// 	n.Cleanup() // Clean up all interface , rules created by this manager
-// 	// Create docker network if not exists
-// 	if err := n.CreateDockerNetwork(); err != nil {
-// 		return err
-// 	}
-// 	// Create required iptable chains
-// 	if err := n.CreateRequiredChains(); err != nil {
-// 		return err
-// 	}
+func (r *NFRule) IsExist() (bool, error) {
+	return IPTablesClient.Exists(r.Table, r.Chain, r.ArgList()...)
+}
 
-// 	// Fetch and set docker network bridge name
-// 	if err := n.FetchAndSetDockerNetworkBridgeName(); err != nil {
-// 		return err
-// 	}
-// 	// Create wireguard interface
-// 	if err := n.AddWireguardInterface(); err != nil {
-// 		return err
-// 	}
-// 	//	Configure wireguard interface
-// 	if err := n.ConfigureWireguard(); err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-// func (n *NetworkManager) CreateDockerNetwork() error {
-// 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	networks, err := dockerClient.NetworkList(context.TODO(), network.ListOptions{})
-// 	if err != nil {
-// 		return err
-// 	}
-// 	for _, network := range networks {
-// 		if network.Name == n.DockerNetworkName {
-// 			return nil
-// 		}
-// 	}
-// 	_, err = dockerClient.NetworkCreate(context.TODO(), n.DockerNetworkName, network.CreateOptions{
-// 		Driver: "bridge",
-// 		IPAM: &network.IPAM{
-// 			Driver: "default",
-// 			Config: []network.IPAMConfig{
-// 				{
-// 					Subnet:  n.DockerNetworkSubnet,
-// 					Gateway: n.DockerNetworkGateway,
-// 				},
-// 			},
-// 		},
-// 		Attachable: true,
-// 	})
-// 	return err
-// }
-
-// func (n *NetworkManager) FetchAndSetDockerNetworkBridgeName() error {
-// 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	network, err := dockerClient.NetworkInspect(context.TODO(), n.DockerNetworkName, network.InspectOptions{})
-// 	if err != nil {
-// 		return err
-// 	}
-// 	n.DockerNetworkBridgeName = fmt.Sprintf("br-%s", network.ID[:12])
-// 	return nil
-// }
-
-// func (n *NetworkManager) Cleanup() error {
-// 	// Delete wireguard interface if exists
-// 	link, err := netlink.LinkByName(n.WireguardInterfaceName)
-// 	if err == nil {
-// 		netlink.LinkDel(link)
-// 	}
-
-// 	// Delete docker network if no containers are using it
-// 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	networks, err := dockerClient.NetworkList(context.TODO(), network.ListOptions{})
-// 	if err != nil {
-// 		return err
-// 	}
-// 	for _, network := range networks {
-// 		if network.Name == n.DockerNetworkName {
-// 			if len(network.Containers) == 0 {
-// 				err = dockerClient.NetworkRemove(context.TODO(), n.DockerNetworkName)
-// 				if err != nil {
-// 					return err
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	// Delete iptables chains
-// 	ipt, err := iptables.New()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if err = ipt.ClearAndDeleteChain("nat", n.PostRoutingChainName); err != nil {
-// 		return err
-// 	}
-// 	if err = ipt.ClearAndDeleteChain("nat", n.PreRoutingChainName); err != nil {
-// 		return err
-// 	}
-// 	if err = ipt.ClearAndDeleteChain("filter", n.ForwardChainName); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-// func (n *NetworkManager) CreateRequiredChains() error {
-// 	ipt, err := iptables.New()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Create POSTROUTING chain if it doesn't exist
-// 	if err = ipt.NewChain("nat", n.PostRoutingChainName); err != nil {
-// 		return err
-// 	}
-// 	if err = ipt.Append("nat", n.PostRoutingChainName, "-j", "RETURN"); err != nil {
-// 		return err
-// 	}
-// 	// Append to main POSTROUTING chain
-// 	if err = ipt.Append("nat", "POSTROUTING", "-j", n.PostRoutingChainName); err != nil {
-// 		return err
-// 	}
-
-// 	// Create PREROUTING chain if it doesn't exist
-// 	if err = ipt.NewChain("nat", n.PreRoutingChainName); err != nil {
-// 		return err
-// 	}
-// 	if err = ipt.Append("nat", n.PreRoutingChainName, "-j", "RETURN"); err != nil {
-// 		return err
-// 	}
-// 	// Append to main PREROUTING chain
-// 	if err = ipt.Append("nat", "PREROUTING", "-j", n.PreRoutingChainName); err != nil {
-// 		return err
-// 	}
-
-// 	// Create FORWARD chain if it doesn't exist
-// 	if err = ipt.NewChain("filter", n.ForwardChainName); err != nil {
-// 		return err
-// 	}
-// 	if err = ipt.Append("filter", n.ForwardChainName, "-j", "RETURN"); err != nil {
-// 		return err
-// 	}
-// 	// Append to main FORWARD chain
-// 	if err = ipt.Append("filter", "FORWARD", "-j", n.ForwardChainName); err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-// func (n *NetworkManager) ConfigureBridgeAndWireguardNAT() error {
-// 	// Enable IP forwarding
-// 	exec.Command("sysctl", "-w", "net.ipv4.ip_forward=1").Run()
-
-// 	// Enable bridge masquerading
-// 	ipt, err := iptables.New()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if err = ipt.Append("nat", n.PostRoutingChainName, "-o", n.WireguardInterfaceName, "-j", "MASQUERADE"); err != nil {
-// 		return err
-// 	}
-// 	if err = ipt.Append("filter", n.ForwardChainName, "-i", n.DockerNetworkBridgeName, "-o", n.WireguardInterfaceName, "-j", "ACCEPT"); err != nil {
-// 		return err
-// 	}
-// 	if err = ipt.Append("filter", n.ForwardChainName, "-i", n.WireguardInterfaceName, "-o", n.DockerNetworkBridgeName, "-j", "ACCEPT"); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-// func (n *NetworkManager) AddWireguardInterface() error {
-// 	// Create wireguard interface
-// 	wg := &netlink.Wireguard{
-// 		LinkAttrs: netlink.LinkAttrs{
-// 			Name: n.WireguardInterfaceName,
-// 			MTU:  n.WireguardInterfaceMTU,
-// 		},
-// 	}
-// 	err := netlink.LinkAdd(wg)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Set interface up
-// 	err = netlink.LinkSetUp(wg)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Add IP address to wireguard interface
-// 	addr, err := netlink.ParseAddr(n.WireguardInterfaceAddress)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return netlink.AddrAdd(wg, addr)
-// }
-
-// func (n *NetworkManager) ConfigureWireguard() error {
-// // Create WireGuard wireguardClient
-// wireguardClient, err := wgctrl.New()
-// if err != nil {
-// 	return fmt.Errorf("failed to create wireguard client: %v", err)
-// }
-// defer wireguardClient.Close()
-
-// privateKey, err := wgtypes.ParseKey(n.WireguardInterfacePrivateKey)
-// if err != nil {
-// 	return err
-// }
-
-// peerConfig := []wgtypes.PeerConfig{}
-
-// for _, peer := range n.WireguardPeers {
-// 	publicKey, err := wgtypes.ParseKey(peer.PublicKey)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	allowedIPs := []net.IPNet{}
-// 	for _, ip := range peer.AllowedIPs {
-// 		_, ipNet, err := net.ParseCIDR(ip)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		allowedIPs = append(allowedIPs, *ipNet)
-// 	}
-
-// 	persistentKeepaliveDuration := time.Second * time.Duration(peer.PersistentKeepalive)
-
-// 	peerConfig = append(peerConfig, wgtypes.PeerConfig{
-// 		PublicKey:                   publicKey,
-// 		AllowedIPs:                  allowedIPs,
-// 		Endpoint:                    &net.UDPAddr{IP: net.ParseIP(peer.EndpointIP), Port: peer.EndpointPort},
-// 		PersistentKeepaliveInterval: &persistentKeepaliveDuration,
-// 		Remove:                      false,
-// 	})
-// }
-
-// err = wireguardClient.ConfigureDevice(n.WireguardInterfaceName, wgtypes.Config{
-// 	PrivateKey:   &privateKey,
-// 	ListenPort:   &n.WireguardListenerPort,
-// 	Peers:        peerConfig,
-// 	ReplacePeers: true,
-// })
-// if err != nil {
-// 	return err
-// }
-
-// // Parse wireguard interface address CIDR
-// _, wgNet, err := net.ParseCIDR(n.WireguardInterfaceAddress)
-// if err != nil {
-// 	return err
-// }
-
-// for _, peer := range n.WireguardPeers {
-// 	for _, ipStr := range peer.AllowedIPs {
-// 		ip, dst, err := net.ParseCIDR(ipStr)
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		// Skip if IP is in same subnet as wireguard interface
-// 		if wgNet.Contains(ip) {
-// 			fmt.Println("Skipping IP in same subnet as wireguard interface")
-// 			continue
-// 		}
-
-// 		fmt.Println("Adding route for allowed IP:", ip)
-
-// 		// Add route for this allowed IP through wireguard interface
-// 		link, err := netlink.LinkByName(n.WireguardInterfaceName)
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		err = netlink.RouteAdd(&netlink.Route{
-// 			LinkIndex: link.Attrs().Index,
-// 			Dst:       dst,
-// 		})
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-// }
-
-// 	return nil
-// }
+func (r *NFRule) RemoveRule() error {
+	return IPTablesClient.DeleteIfExists(r.Table, r.Chain, r.ArgList()...)
+}
