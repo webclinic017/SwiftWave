@@ -28,14 +28,7 @@ type DockerNetworkConfig struct {
 func GetConfig() (*AgentConfig, error) {
 	var config AgentConfig
 	if err := rDB.First(&config).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &AgentConfig{
-				WireguardConfig: WireguardConfig{},
-				DockerNetwork:   DockerNetworkConfig{},
-			}, nil
-		} else {
-			return nil, errors.New("error getting config")
-		}
+		return nil, errors.New("error getting config")
 	}
 	return &config, nil
 }

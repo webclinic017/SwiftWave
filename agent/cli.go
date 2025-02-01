@@ -65,13 +65,10 @@ var startCmd = &cobra.Command{
 var setupCmd = &cobra.Command{
 	Use: "setup",
 	Run: func(cmd *cobra.Command, args []string) {
-		existingConfig, err := GetConfig()
+		_, err := GetConfig()
 		if err == nil {
-			fmt.Println(existingConfig)
-			if existingConfig.WireguardConfig.PrivateKey != "" {
-				cmd.Println("Sorry, you can't change any config")
-				return
-			}
+			cmd.Println("Sorry, you can't change any config")
+			return
 		}
 
 		wireguard_cidr, err := strconv.Atoi(cmd.Flag("wireguard-cidr").Value.String())
