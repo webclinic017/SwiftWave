@@ -130,6 +130,23 @@ func GenerateWireguardSubnet(template string) (string, error) {
 	return fmt.Sprintf("%s/%d", ip, t.ServerBitsStartIndex), nil
 }
 
+func GenerateContainerWildcardSubnet(template string) (string, error) {
+	t, err := parseTemplate(template)
+	if err != nil {
+		return "", err
+	}
+
+	// Replace the reserved bits with the wireguard
+	templateString := t.Template
+	templateString = strings.Replace(templateString, "xxx", dockerNetwork, 1)
+
+	ip, err := binaryFormatToIP(templateString)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/%d", ip, t.ContainerBitsStartIndex), nil
+}
+
 func GenerateContainerGatewayIP(template string, serverId int) (string, error) {
 	t, err := parseTemplate(template)
 	if err != nil {
