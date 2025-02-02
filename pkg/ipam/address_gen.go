@@ -144,7 +144,12 @@ func GenerateContainerWildcardSubnet(template string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/%d", ip, t.ContainerBitsStartIndex), nil
+	/*
+	* Wildcard subnet is the subnet across all servers
+	* That's why take the first server bits as the start index
+	* to decide the container wildcard subnet
+	*/
+	return fmt.Sprintf("%s/%d", ip, t.ServerBitsStartIndex), nil
 }
 
 func GenerateContainerGatewayIP(template string, serverId int) (string, error) {
