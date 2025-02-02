@@ -84,8 +84,8 @@ type DNSEntry struct {
 
 type WireguardPeer struct {
 	PublicKey  string `gorm:"public_key;primaryKey"`
-	AllowedIPs string `gorm:"allowed_ips"`
-	EndpointIP string `gorm:"endpoint_ip"`
+	AllowedIPs string `gorm:"allowed_ips"` // Allowed ips - [ip1/cidr1,ip2/cidr2,...]
+	EndpointIP string `gorm:"endpoint_ip"` // ip1:51820
 }
 
 type StaticRoute struct {

@@ -11,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/vishvananda/netlink"
 	"golang.zx2c4.com/wireguard/wgctrl"
-	"gorm.io/gorm"
 )
 
 /*
@@ -45,7 +44,8 @@ func init() {
 
 // ------------- Docker Network -------------
 
-func (c *AgentConfig) CreateDockerNetwork(db *gorm.DB) error {
+func (c *AgentConfig) CreateDockerNetwork(remove bool) error {
+	_ = dockerClient.NetworkRemove(context.TODO(), DockerNetworkName)
 	// Check if already exists
 	_, err := dockerClient.NetworkInspect(context.TODO(), DockerNetworkName, network.InspectOptions{})
 	if err == nil {
@@ -68,11 +68,24 @@ func (c *AgentConfig) CreateDockerNetwork(db *gorm.DB) error {
 		return err
 	}
 	c.DockerNetwork.BridgeId = fmt.Sprintf("br-%s", res.ID[:12])
-	err = SetConfig(db, c)
+	err = SetConfig(c)
 	return err
 }
 
 // ------------- Wireguard -------------
+
+func (c *AgentConfig) RemoveWireguard() error {
+	// Check if wireguard interface already exists
+	link, err := netlink.LinkByName(WireguardInterfaceName)
+	if err != nil {
+		return nil
+	}
+	err = netlink.LinkDel(link)
+	if err != nil {
+		return fmt.Errorf("failed to delete wireguard interface: %v", err)
+	}
+	return nil
+}
 
 func (c *AgentConfig) SetupWireguard() error {
 	// Check if wireguard interface already exists
@@ -97,7 +110,6 @@ func (c *AgentConfig) SetupWireguard() error {
 	if err != nil {
 		return fmt.Errorf("failed to add wireguard interface: %v", err)
 	}
-
 	// Add IP address to wireguard interface
 	addr, err := netlink.ParseAddr(c.WireguardConfig.Address)
 	if err != nil {

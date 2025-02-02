@@ -13,7 +13,7 @@ import (
 const WireguardPersistentKeepalive int = 10
 const WireguardListenPort int = 51820
 const WireguardPeerPort int = 51820
-const WireguardInterfaceName = "swiftwave_wireguard"
+const WireguardInterfaceName = "swiftwave_wg"
 
 func ConfigureWireguardPeers() error {
 	// Create WireGuard wireguardClient
@@ -40,6 +40,14 @@ func ConfigureWireguardPeers() error {
 		return err
 	}
 
+	if config.NodeType != MasterNode {
+		wireguardPeers = append(wireguardPeers, WireguardPeer{
+			PublicKey:  config.MasterNodeConnectConfig.PublicKey,
+			EndpointIP: config.MasterNodeConnectConfig.Endpoint,
+			AllowedIPs: config.MasterNodeConnectConfig.AllowedIPs,
+		})
+	}
+
 	for _, peer := range wireguardPeers {
 		publicKey, err := wgtypes.ParseKey(peer.PublicKey)
 		if err != nil {
@@ -47,10 +55,7 @@ func ConfigureWireguardPeers() error {
 		}
 
 		allowedIPs := []net.IPNet{}
-
-		allowedIPStrs := strings.Split(peer.AllowedIPs, ",")
-
-		for _, ip := range allowedIPStrs {
+		for _, ip := range strings.Split(peer.AllowedIPs, ",") {
 			_, ipNet, err := net.ParseCIDR(strings.TrimSpace(ip))
 			if err != nil {
 				return err
@@ -59,11 +64,15 @@ func ConfigureWireguardPeers() error {
 		}
 
 		persistentKeepaliveDuration := time.Second * time.Duration(WireguardPersistentKeepalive)
+		var endpoint *net.UDPAddr
+		if peer.EndpointIP != "" {
+			endpoint = &net.UDPAddr{IP: net.ParseIP(peer.EndpointIP), Port: WireguardPeerPort}
+		}
 
 		peerConfig = append(peerConfig, wgtypes.PeerConfig{
 			PublicKey:                   publicKey,
 			AllowedIPs:                  allowedIPs,
-			Endpoint:                    &net.UDPAddr{IP: net.ParseIP(peer.EndpointIP), Port: WireguardPeerPort},
+			Endpoint:                    endpoint,
 			PersistentKeepaliveInterval: &persistentKeepaliveDuration,
 			Remove:                      false,
 		})

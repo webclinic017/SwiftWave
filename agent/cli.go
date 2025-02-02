@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
-	"strconv"
+	"strings"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/spf13/cobra"
 	"github.com/vishvananda/netlink"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 func init() {
@@ -22,17 +24,18 @@ func init() {
 
 	setupCmd.Flags().String("wireguard-private-key", "", "Wireguard private key")
 	setupCmd.Flags().String("wireguard-address", "", "Wireguard address")
-	setupCmd.Flags().Int("wireguard-cidr", 0, "Wireguard CIDR")
 	setupCmd.Flags().String("docker-network-gateway-address", "", "Docker network gateway address")
 	setupCmd.Flags().String("docker-network-subnet", "", "Docker network subnet")
-	setupCmd.Flags().Int("docker-network-cidr", 0, "Docker network CIDR")
+
+	setupCmd.Flags().Bool("master-node", false, "Setup as a master node")
+	setupCmd.Flags().String("master-node-endpoint", "", "Master server endpoint")
+	setupCmd.Flags().String("master-node-public-key", "", "Master server public key")
+	setupCmd.Flags().String("master-node-allowed-ips", "", "Master server allowed ips")
+
 	setupCmd.MarkFlagRequired("wireguard-private-key")
 	setupCmd.MarkFlagRequired("wireguard-address")
-	setupCmd.MarkFlagRequired("wireguard-cidr")
 	setupCmd.MarkFlagRequired("docker-network-gateway-address")
 	setupCmd.MarkFlagRequired("docker-network-subnet")
-	setupCmd.MarkFlagRequired("docker-network-cidr")
-
 }
 
 var rootCmd = &cobra.Command{
@@ -71,45 +74,89 @@ var setupCmd = &cobra.Command{
 			return
 		}
 
-		wireguard_cidr, err := strconv.Atoi(cmd.Flag("wireguard-cidr").Value.String())
+		isMasterNode, err := cmd.Flags().GetBool("master-node")
 		if err != nil {
-			cmd.PrintErr("Invalid wireguard cidr")
+			cmd.PrintErr("Invalid master node flag")
 			return
 		}
-		docker_cidr, err := strconv.Atoi(cmd.Flag("docker-network-cidr").Value.String())
-		if err != nil {
-			cmd.PrintErr("Invalid docker cidr")
-			return
+
+		nodeType := WorkerNode
+		if isMasterNode {
+			nodeType = MasterNode
 		}
+
 		config := AgentConfig{
+			NodeType: nodeType,
 			WireguardConfig: WireguardConfig{
 				PrivateKey: cmd.Flag("wireguard-private-key").Value.String(),
 				Address:    cmd.Flag("wireguard-address").Value.String(),
-				CIDR:       wireguard_cidr,
 			},
 			DockerNetwork: DockerNetworkConfig{
 				GatewayAddress: cmd.Flag("docker-network-gateway-address").Value.String(),
 				Subnet:         cmd.Flag("docker-network-subnet").Value.String(),
-				CIDR:           docker_cidr,
+			},
+			MasterNodeConnectConfig: MasterNodeConnectConfig{
+				Endpoint:   cmd.Flag("master-node-endpoint").Value.String(),
+				PublicKey:  cmd.Flag("master-node-public-key").Value.String(),
+				AllowedIPs: cmd.Flag("master-node-allowed-ips").Value.String(),
 			},
 		}
 
-		tx := rwDB.Begin()
-		defer tx.Rollback()
+		if !isMasterNode {
+			// Check MasterNodeConnectConfig endpoint
+			ip := net.ParseIP(config.MasterNodeConnectConfig.Endpoint)
+			if ip == nil {
+				cmd.PrintErr("Invalid master node endpoint")
+				return
+			}
+			// Check MasterNodeConnectConfig public key
+			_, err := wgtypes.ParseKey(config.MasterNodeConnectConfig.PublicKey)
+			if err != nil {
+				cmd.PrintErr("Invalid master node public key")
+				return
+			}
+			// Check MasterNodeConnectConfig allowed ips
+			allowedIPs := strings.Split(config.MasterNodeConnectConfig.AllowedIPs, ",")
+			for _, ip := range allowedIPs {
+				_, _, err := net.ParseCIDR(strings.TrimSpace(ip))
+				if err != nil {
+					cmd.PrintErrf("Invalid master node allowed ips: %s", err.Error())
+					return
+				}
+			}
+		}
 
-		err = SetConfig(tx, &config)
+		isSuccess := false
+
+		defer func() {
+			if !isSuccess {
+				_ = RemoveConfig()
+				fmt.Println("Config removed")
+			} else {
+				fmt.Println("Config updated")
+			}
+		}()
+
+		err = SetConfig(&config)
 		if err != nil {
 			cmd.PrintErr(err.Error())
 			return
 		}
 		// Create docker network if it doesn't exist
-		err = config.CreateDockerNetwork(tx)
+		err = config.CreateDockerNetwork(true)
 		if err != nil {
 			cmd.PrintErr(err.Error())
 			return
 		}
-		tx.Commit()
-		cmd.Println("Config updated")
+		// Remove wireguard
+		_ = config.RemoveWireguard()
+		// Setup wireguard
+		err = config.SetupWireguard()
+		if err != nil {
+			cmd.PrintErr(err.Error())
+			return
+		}
+		isSuccess = true
 	},
 }
 
@@ -130,7 +177,7 @@ var syncDockerBridge = &cobra.Command{
 			return
 		}
 		config.DockerNetwork.BridgeId = fmt.Sprintf("br-%s", config.DockerNetwork.BridgeId[:12])
-		err = SetConfig(rwDB, config)
+		err = SetConfig(config)
 		if err != nil {
 			cmd.PrintErr(err.Error())
 			return
@@ -147,16 +194,23 @@ var getConfig = &cobra.Command{
 			cmd.PrintErr(err.Error())
 			return
 		}
+		cmd.Println("Agent Configuration:")
+		cmd.Printf("  • Node Type ---------- %s\n", config.NodeType)
+		if config.NodeType == WorkerNode {
+			cmd.Printf("  • Connect Configuration:\n")
+			cmd.Printf("    • Endpoint ---------- %s\n", config.MasterNodeConnectConfig.Endpoint)
+			cmd.Printf("    • Public Key -------- %s\n", config.MasterNodeConnectConfig.PublicKey)
+			cmd.Printf("    • Allowed IPs ------- %s\n", config.MasterNodeConnectConfig.AllowedIPs)
+		}
+		cmd.Println()
 		cmd.Println("Wireguard Configuration:")
 		cmd.Printf("  • Private Key -------- %s\n", config.WireguardConfig.PrivateKey)
 		cmd.Printf("  • Address ------------ %s\n", config.WireguardConfig.Address)
-		cmd.Printf("  • CIDR -------------- %d\n", config.WireguardConfig.CIDR)
 		cmd.Println()
 		cmd.Println("Docker Network Configuration:")
 		cmd.Printf("  • Bridge ID ---------- %s\n", config.DockerNetwork.BridgeId)
 		cmd.Printf("  • Gateway Address ---- %s\n", config.DockerNetwork.GatewayAddress)
 		cmd.Printf("  • Subnet ------------- %s\n", config.DockerNetwork.Subnet)
-		cmd.Printf("  • CIDR -------------- %d\n", config.DockerNetwork.CIDR)
 	},
 }
 
