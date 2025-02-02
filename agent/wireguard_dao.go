@@ -44,33 +44,30 @@ func (w *WireguardPeer) Create() error {
 	} else if exists {
 		return fmt.Errorf("wireguard peer already exists")
 	}
-	tx := rwDB.Begin()
-	defer tx.Rollback()
-	err := tx.Create(w).Error
+	err := rwDB.Create(w).Error
 	if err != nil {
 		return err
 	}
 	// Try to reconfigure wireguard
 	if err := ConfigureWireguardPeers(); err != nil {
+		// Try to remove the record
+		_ = rwDB.Delete(w).Error
 		return err
 	}
-	tx.Commit()
 	return nil
 }
 
 func (w *WireguardPeer) Remove() error {
-	tx := rwDB.Begin()
-	defer tx.Rollback()
-	err := tx.Delete(w).Error
+	err := rwDB.Delete(w).Error
 	if err != nil {
 		return err
 	}
 	// Try to reconfigure wireguard
-	err = ConfigureWireguardPeers()
-	if err != nil {
+	if err := ConfigureWireguardPeers(); err != nil {
+		// Try to create the record
+		_ = rwDB.Create(w).Error
 		return err
 	}
-	tx.Commit()
 	return nil
 }
 

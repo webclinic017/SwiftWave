@@ -91,6 +91,9 @@ func (c *AgentConfig) SetupWireguard() error {
 	// Check if wireguard interface already exists
 	_, err := netlink.LinkByName(WireguardInterfaceName)
 	if err == nil {
+		if err := ConfigureWireguardPeers(); err != nil {
+			return err
+		}
 		return nil
 	}
 	// If it already exists, return
