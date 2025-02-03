@@ -24,13 +24,13 @@ import (
 
 const DockerNetworkName = "swiftwave_container_network"
 
-const FilterInputChainName = "swiftwave_filter_input"
-const FilterOutputChainName = "swiftwave_filter_output"
-const FilterForwardChainName = "swiftwave_filter_forward"
-const NatPreroutingChainName = "swiftwave_nat_prerouting"
-const NatPostroutingChainName = "swiftwave_nat_postrouting"
-const NatInputChainName = "swiftwave_nat_input"
-const NatOutputChainName = "swiftwave_nat_output"
+const FilterInputChainName = "SWIFTWAVE_FILTER_INPUT"
+const FilterOutputChainName = "SWIFTWAVE_FILTER_OUTPUT"
+const FilterForwardChainName = "SWIFTWAVE_FILTER_FORWARD"
+const NatPreroutingChainName = "SWIFTWAVE_NAT_PREROUTING"
+const NatPostroutingChainName = "SWIFTWAVE_NAT_POSTROUTING"
+const NatInputChainName = "SWIFTWAVE_NAT_INPUT"
+const NatOutputChainName = "SWIFTWAVE_NAT_OUTPUT"
 
 var IPTablesClient *iptables.IPTables
 
@@ -257,6 +257,33 @@ func SetupIptablesChains() error {
 				return fmt.Errorf("failed to create chain: %v", err)
 			}
 		}
+		// Create default RETURN for the chain
+		err = IPTablesClient.AppendUnique("nat", chain, "-j", "RETURN")
+		if err != nil {
+			return fmt.Errorf("failed to create default RETURN rule: %v", err)
+		}
+	}
+	// Hook the chains to main chain
+	if err := IPTablesClient.InsertUnique("nat", "OUTPUT", 0, "-j", NatOutputChainName); err != nil {
+		return err
+	}
+	if err := IPTablesClient.InsertUnique("nat", "POSTROUTING", 0, "-j", NatPostroutingChainName); err != nil {
+		return err
+	}
+	if err := IPTablesClient.InsertUnique("nat", "PREROUTING", 0, "-j", NatPreroutingChainName); err != nil {
+		return err
+	}
+	if err := IPTablesClient.InsertUnique("nat", "INPUT", 0, "-j", NatInputChainName); err != nil {
+		return err
+	}
+	if err := IPTablesClient.InsertUnique("filter", "FORWARD", 0, "-j", FilterForwardChainName); err != nil {
+		return err
+	}
+	if err := IPTablesClient.InsertUnique("filter", "INPUT", 0, "-j", FilterInputChainName); err != nil {
+		return err
+	}
+	if err := IPTablesClient.InsertUnique("filter", "OUTPUT", 0, "-j", FilterOutputChainName); err != nil {
+		return err
 	}
 	return nil
 }
