@@ -177,16 +177,50 @@ func (c *AgentConfig) SetupWireguard() error {
 		}
 	}
 
-	// Add iptable rule to accept anything on wireguard interface
-	err = IPTablesClient.AppendUnique("filter", "FORWARD", "-i", WireguardInterfaceName, "-j", "ACCEPT")
+	// Add iptable rules for wireguard interface
+	// First check if rules exist
+	existsForward, err := IPTablesClient.Exists("filter", "FORWARD", "-i", WireguardInterfaceName, "-j", "ACCEPT")
 	if err != nil {
-		return fmt.Errorf("failed to add iptable rule to accept anything on wireguard interface: %v", err)
+		return fmt.Errorf("failed to check existing forward rule: %v", err)
+	}
+	if !existsForward {
+		rules, err := IPTablesClient.List("filter", "FORWARD")
+		if err != nil {
+			return fmt.Errorf("failed to list forward rules: %v", err)
+		}
+		position := len(rules) // default to last position
+		if position > 1 {
+			position = position - 1 // insert before last rule if exists
+		}
+		if position <= 0 {
+			position = 1
+		}
+		err = IPTablesClient.Insert("filter", "FORWARD", position, "-i", WireguardInterfaceName, "-j", "ACCEPT")
+		if err != nil {
+			return fmt.Errorf("failed to add iptable rule to accept anything on wireguard interface: %v", err)
+		}
 	}
 
-	// Configure wireguard peers
-	err = ConfigureWireguardPeers()
+	existsInput, err := IPTablesClient.Exists("filter", FilterInputChainName, "-i", WireguardInterfaceName, "-j", "ACCEPT")
 	if err != nil {
-		return fmt.Errorf("failed to configure wireguard peers: %v", err)
+		return fmt.Errorf("failed to check existing input rule: %v", err)
+	}
+	if !existsInput {
+		rules, err := IPTablesClient.List("filter", FilterInputChainName)
+		if err != nil {
+			return fmt.Errorf("failed to list input rules: %v", err)
+		}
+		position := len(rules) // default to last position
+		if position > 1 {
+			position = position - 1 // insert before last rule if exists
+		}
+		if position <= 0 {
+			position = 1
+		}
+		err = IPTablesClient.Insert("filter", FilterInputChainName, position, "-i", WireguardInterfaceName, "-j", "ACCEPT")
+		if err != nil {
+			return fmt.Errorf("failed to add iptable rule to accept incoming traffic on wireguard interface: %v", err)
+		}
 	}
 	return nil
 }
