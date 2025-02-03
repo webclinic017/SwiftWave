@@ -231,7 +231,7 @@ func (s *StaticRoute) RemoveRoute() error {
 
 func SetupIptablesChains() error {
 	filterChains := []string{FilterInputChainName, FilterOutputChainName, FilterForwardChainName}
-	natChains := []string{NatPreroutingChainName, NatPostroutingChainName}
+	natChains := []string{NatPreroutingChainName, NatPostroutingChainName, NatInputChainName, NatOutputChainName}
 	// Create filter chains
 	for _, chain := range filterChains {
 		exists, err := IPTablesClient.ChainExists("filter", chain)
@@ -264,25 +264,25 @@ func SetupIptablesChains() error {
 		}
 	}
 	// Hook the chains to main chain
-	if err := IPTablesClient.InsertUnique("nat", "OUTPUT", 0, "-j", NatOutputChainName); err != nil {
+	if err := IPTablesClient.InsertUnique("nat", "OUTPUT", 1, "-j", NatOutputChainName); err != nil {
 		return err
 	}
-	if err := IPTablesClient.InsertUnique("nat", "POSTROUTING", 0, "-j", NatPostroutingChainName); err != nil {
+	if err := IPTablesClient.InsertUnique("nat", "POSTROUTING", 1, "-j", NatPostroutingChainName); err != nil {
 		return err
 	}
-	if err := IPTablesClient.InsertUnique("nat", "PREROUTING", 0, "-j", NatPreroutingChainName); err != nil {
+	if err := IPTablesClient.InsertUnique("nat", "PREROUTING", 1, "-j", NatPreroutingChainName); err != nil {
 		return err
 	}
-	if err := IPTablesClient.InsertUnique("nat", "INPUT", 0, "-j", NatInputChainName); err != nil {
+	if err := IPTablesClient.InsertUnique("nat", "INPUT", 1, "-j", NatInputChainName); err != nil {
 		return err
 	}
-	if err := IPTablesClient.InsertUnique("filter", "FORWARD", 0, "-j", FilterForwardChainName); err != nil {
+	if err := IPTablesClient.InsertUnique("filter", "FORWARD", 1, "-j", FilterForwardChainName); err != nil {
 		return err
 	}
-	if err := IPTablesClient.InsertUnique("filter", "INPUT", 0, "-j", FilterInputChainName); err != nil {
+	if err := IPTablesClient.InsertUnique("filter", "INPUT", 1, "-j", FilterInputChainName); err != nil {
 		return err
 	}
-	if err := IPTablesClient.InsertUnique("filter", "OUTPUT", 0, "-j", FilterOutputChainName); err != nil {
+	if err := IPTablesClient.InsertUnique("filter", "OUTPUT", 1, "-j", FilterOutputChainName); err != nil {
 		return err
 	}
 	return nil
