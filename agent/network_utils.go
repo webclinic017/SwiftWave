@@ -89,22 +89,22 @@ func (c *AgentConfig) SyncDockerBridge() error {
 	*/
 
 	if oldBridgeId != "" {
-		err = IPTablesClient.DeleteIfExists("filter", FilterForwardChainName, fmt.Sprintf("-i %s -o %s -j ACCEPT", oldBridgeId, WireguardInterfaceName))
+		err = IPTablesClient.DeleteIfExists("filter", FilterForwardChainName, "-i", oldBridgeId, "-o", WireguardInterfaceName, "-j", "ACCEPT")
 		if err != nil {
 			return err
 		}
-		err = IPTablesClient.DeleteIfExists("filter", FilterForwardChainName, fmt.Sprintf("-i %s -o %s -j ACCEPT", WireguardInterfaceName, oldBridgeId))
+		err = IPTablesClient.DeleteIfExists("filter", FilterForwardChainName, "-i", oldBridgeId, "-o", newBridgeId, "-j", "ACCEPT")
 		if err != nil {
 			return err
 		}
 	}
 
 	// Add new iptable rules
-	err = IPTablesClient.AppendUnique("filter", FilterForwardChainName, fmt.Sprintf("-i %s -o %s -j ACCEPT", newBridgeId, WireguardInterfaceName))
+	err = IPTablesClient.AppendUnique("filter", FilterForwardChainName, "-i", WireguardInterfaceName, "-o", newBridgeId, "-j", "ACCEPT")
 	if err != nil {
 		return err
 	}
-	return IPTablesClient.AppendUnique("filter", FilterForwardChainName, fmt.Sprintf("-i %s -o %s -j ACCEPT", WireguardInterfaceName, newBridgeId))
+	return IPTablesClient.AppendUnique("filter", FilterForwardChainName, "-i", newBridgeId, "-o", WireguardInterfaceName, "-j", "ACCEPT")
 
 }
 
