@@ -76,6 +76,7 @@ func (c *AgentConfig) SyncDockerBridge() error {
 	if err != nil {
 		return err
 	}
+	oldRules := c.GenerateDockerIptablesRules()
 	oldBridgeId := c.DockerNetwork.BridgeId
 	newBridgeId := fmt.Sprintf("br-%s", network.ID[:12])
 	c.DockerNetwork.BridgeId = newBridgeId
@@ -83,31 +84,43 @@ func (c *AgentConfig) SyncDockerBridge() error {
 	if err != nil {
 		return err
 	}
+	// Delete old iptable rules if bridge id changed
+	if oldBridgeId != "" && oldBridgeId != newBridgeId {
+		for _, rule := range oldRules {
+			err = IPTablesClient.DeleteIfExists(rule[0], rule[1], rule[2:]...)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	newRules := c.GenerateDockerIptablesRules()
+	for _, rule := range newRules {
+		err = IPTablesClient.InsertUnique(rule[0], rule[1], 1, rule[2:]...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *AgentConfig) GenerateDockerIptablesRules() [][]string {
+	var rules [][]string = [][]string{} // table, chain, args
+	if c.DockerNetwork.BridgeId == "" || c.DockerNetwork.Subnet == "" {
+		return rules
+	}
 	/*
-		- iptables -A FORWARD -i br-9664fa2b25e5 -o swiftwave_wg -j ACCEPT
-		- iptables -A FORWARD -i swiftwave_wg -o br-9664fa2b25e5 -j ACCEPT
+		sudo iptables -A FORWARD -o docker0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+		sudo iptables -A FORWARD -i docker0 -j ACCEPT
+		sudo iptables -t nat -A POSTROUTING -s 172.17.0.0/16 ! -o docker0 -j MASQUERADE
+		sudo iptables -A FORWARD -i docker0 -o swiftwave_wg -j ACCEPT
+		sudo iptables -A FORWARD -i swiftwave_wg -o docker0 -j ACCEPT
 	*/
-
-	if oldBridgeId != "" {
-		err = IPTablesClient.DeleteIfExists("filter", FilterForwardChainName, "-i", oldBridgeId, "-o", WireguardInterfaceName, "-j", "ACCEPT")
-		if err != nil {
-			return err
-		}
-		err = IPTablesClient.DeleteIfExists("filter", FilterForwardChainName, "-i", oldBridgeId, "-o", newBridgeId, "-j", "ACCEPT")
-		if err != nil {
-			return err
-		}
-	}
-
-	// Add new iptable rules
-	// It's important to insert the rule at the top of the chain
-	// Else, other rules might be matched first and the connection will not be established
-	err = IPTablesClient.InsertUnique("filter", FilterForwardChainName, 1, "-i", WireguardInterfaceName, "-o", newBridgeId, "-j", "ACCEPT")
-	if err != nil {
-		return err
-	}
-	return IPTablesClient.InsertUnique("filter", FilterForwardChainName, 1, "-i", newBridgeId, "-o", WireguardInterfaceName, "-j", "ACCEPT")
-
+	rules = append(rules, []string{"filter", FilterForwardChainName, "-o", c.DockerNetwork.BridgeId, "-m", "conntrack", "--ctstate", "RELATED,ESTABLISHED", "-j", "ACCEPT"})
+	rules = append(rules, []string{"filter", FilterForwardChainName, "-i", c.DockerNetwork.BridgeId, "-j", "ACCEPT"})
+	rules = append(rules, []string{"nat", NatPostroutingChainName, "-s", c.DockerNetwork.Subnet, "!", "-o", c.DockerNetwork.BridgeId, "-j", "MASQUERADE"})
+	rules = append(rules, []string{"filter", FilterForwardChainName, "-i", c.DockerNetwork.BridgeId, "-o", WireguardInterfaceName, "-j", "ACCEPT"})
+	rules = append(rules, []string{"filter", FilterForwardChainName, "-i", WireguardInterfaceName, "-o", c.DockerNetwork.BridgeId, "-j", "ACCEPT"})
+	return rules
 }
 
 // ------------- Wireguard -------------

@@ -54,9 +54,10 @@ var startCmd = &cobra.Command{
 			cmd.PrintErr(err.Error())
 			return
 		}
-		config.SetupWireguard()
+		_ = config.SetupWireguard()
+		_ = config.SyncDockerBridge()
 		SetupStaticRoutes()
-		SetupIptables()
+		_ = SetupIptables()
 		// Start main process
 		go startHttpServer()
 		go startDnsServer()
