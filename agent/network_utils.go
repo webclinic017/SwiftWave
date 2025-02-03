@@ -141,45 +141,49 @@ func (c *AgentConfig) RemoveWireguard() error {
 func (c *AgentConfig) SetupWireguard() error {
 	// Check if wireguard interface already exists
 	_, err := netlink.LinkByName(WireguardInterfaceName)
-	if err == nil {
-		if err := ConfigureWireguardPeers(); err != nil {
-			return err
+	// If it doesn't exist, create it
+	if err != nil {
+		// If it already exists, return
+		client, err := wgctrl.New()
+		if err != nil {
+			return fmt.Errorf("failed to create wireguard client: %v", err)
 		}
-		return nil
-	}
-	// If it already exists, return
-	client, err := wgctrl.New()
-	if err != nil {
-		return fmt.Errorf("failed to create wireguard client: %v", err)
-	}
-	defer client.Close()
-	// Create wireguard interface
-	wg := &netlink.Wireguard{
-		LinkAttrs: netlink.LinkAttrs{
-			Name: WireguardInterfaceName,
-			MTU:  1420,
-		},
-	}
-	err = netlink.LinkAdd(wg)
-	if err != nil {
-		return fmt.Errorf("failed to add wireguard interface: %v", err)
-	}
-	// Add IP address to wireguard interface
-	addr, err := netlink.ParseAddr(c.WireguardConfig.Address)
-	if err != nil {
-		return fmt.Errorf("failed to parse wireguard address: %v", err)
-	}
-	err = netlink.AddrAdd(wg, addr)
-	if err != nil {
-		return fmt.Errorf("failed to add wireguard address: %v", err)
+		defer client.Close()
+		// Create wireguard interface
+		wg := &netlink.Wireguard{
+			LinkAttrs: netlink.LinkAttrs{
+				Name: WireguardInterfaceName,
+				MTU:  1420,
+			},
+		}
+		err = netlink.LinkAdd(wg)
+		if err != nil {
+			return fmt.Errorf("failed to add wireguard interface: %v", err)
+		}
+		// Add IP address to wireguard interface
+		addr, err := netlink.ParseAddr(c.WireguardConfig.Address)
+		if err != nil {
+			return fmt.Errorf("failed to parse wireguard address: %v", err)
+		}
+		err = netlink.AddrAdd(wg, addr)
+		if err != nil {
+			return fmt.Errorf("failed to add wireguard address: %v", err)
+		}
+
+		// Set interface up
+		err = netlink.LinkSetUp(wg)
+		if err != nil {
+			return fmt.Errorf("failed to set wireguard interface up: %v", err)
+		}
 	}
 
-	// Set interface up
-	err = netlink.LinkSetUp(wg)
+	// Add iptable rule to accept anything on wireguard interface
+	err = IPTablesClient.AppendUnique("filter", "FORWARD", "-i", WireguardInterfaceName, "-j", "ACCEPT")
 	if err != nil {
-		return fmt.Errorf("failed to set wireguard interface up: %v", err)
+		return fmt.Errorf("failed to add iptable rule to accept anything on wireguard interface: %v", err)
 	}
 
+	// Configure wireguard peers
 	err = ConfigureWireguardPeers()
 	if err != nil {
 		return fmt.Errorf("failed to configure wireguard peers: %v", err)
