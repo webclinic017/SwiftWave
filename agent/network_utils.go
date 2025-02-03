@@ -100,11 +100,13 @@ func (c *AgentConfig) SyncDockerBridge() error {
 	}
 
 	// Add new iptable rules
-	err = IPTablesClient.AppendUnique("filter", FilterForwardChainName, "-i", WireguardInterfaceName, "-o", newBridgeId, "-j", "ACCEPT")
+	// It's important to insert the rule at the top of the chain
+	// Else, other rules might be matched first and the connection will not be established
+	err = IPTablesClient.InsertUnique("filter", FilterForwardChainName, 0, "-i", WireguardInterfaceName, "-o", newBridgeId, "-j", "ACCEPT")
 	if err != nil {
 		return err
 	}
-	return IPTablesClient.AppendUnique("filter", FilterForwardChainName, "-i", newBridgeId, "-o", WireguardInterfaceName, "-j", "ACCEPT")
+	return IPTablesClient.InsertUnique("filter", FilterForwardChainName, 0, "-i", newBridgeId, "-o", WireguardInterfaceName, "-j", "ACCEPT")
 
 }
 
