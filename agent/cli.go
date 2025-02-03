@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
 	"github.com/spf13/cobra"
 	"github.com/vishvananda/netlink"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
@@ -156,6 +155,12 @@ var setupCmd = &cobra.Command{
 			cmd.PrintErr(err.Error())
 			return
 		}
+		// Sync docker bridge
+		err = config.SyncDockerBridge()
+		if err != nil {
+			cmd.PrintErr(err.Error())
+			return
+		}
 		isSuccess = true
 	},
 }
@@ -163,26 +168,17 @@ var setupCmd = &cobra.Command{
 var syncDockerBridge = &cobra.Command{
 	Use: "sync-docker-bridge",
 	Run: func(cmd *cobra.Command, args []string) {
-		// Check if docker network bridge exists
-		_, err := dockerClient.NetworkInspect(context.TODO(), DockerNetworkName, network.InspectOptions{})
-		if err != nil {
-			cmd.Println("Docker network bridge doesn't exist")
-			cmd.PrintErr(err.Error())
-			return
-		}
-		// Set docker network bridge id
 		config, err := GetConfig()
 		if err != nil {
-			cmd.PrintErr(err.Error())
+			cmd.PrintErr("Failed to fetch config")
 			return
 		}
-		config.DockerNetwork.BridgeId = fmt.Sprintf("br-%s", config.DockerNetwork.BridgeId[:12])
-		err = SetConfig(config)
+		err = config.SyncDockerBridge()
 		if err != nil {
 			cmd.PrintErr(err.Error())
 			return
 		}
-		cmd.Println("Docker network bridge info synced")
+		cmd.Println("Docker bridge synced")
 	},
 }
 

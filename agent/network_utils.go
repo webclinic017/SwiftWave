@@ -51,7 +51,7 @@ func (c *AgentConfig) CreateDockerNetwork(remove bool) error {
 	if err == nil {
 		return fmt.Errorf("%s already exists", DockerNetworkName)
 	}
-	res, err := dockerClient.NetworkCreate(context.TODO(), DockerNetworkName, network.CreateOptions{
+	_, err = dockerClient.NetworkCreate(context.TODO(), DockerNetworkName, network.CreateOptions{
 		Driver: "bridge",
 		IPAM: &network.IPAM{
 			Driver: "default",
@@ -67,9 +67,45 @@ func (c *AgentConfig) CreateDockerNetwork(remove bool) error {
 	if err != nil {
 		return err
 	}
-	c.DockerNetwork.BridgeId = fmt.Sprintf("br-%s", res.ID[:12])
 	err = SetConfig(c)
 	return err
+}
+
+func (c *AgentConfig) SyncDockerBridge() error {
+	network, err := dockerClient.NetworkInspect(context.TODO(), DockerNetworkName, network.InspectOptions{})
+	if err != nil {
+		return err
+	}
+	oldBridgeId := c.DockerNetwork.BridgeId
+	newBridgeId := fmt.Sprintf("br-%s", network.ID[:12])
+	c.DockerNetwork.BridgeId = newBridgeId
+	err = SetConfig(c)
+	if err != nil {
+		return err
+	}
+	/*
+		- iptables -A FORWARD -i br-9664fa2b25e5 -o swiftwave_wg -j ACCEPT
+		- iptables -A FORWARD -i swiftwave_wg -o br-9664fa2b25e5 -j ACCEPT
+	*/
+
+	if oldBridgeId != "" {
+		err = IPTablesClient.DeleteIfExists("filter", FilterForwardChainName, fmt.Sprintf("-i %s -o %s -j ACCEPT", oldBridgeId, WireguardInterfaceName))
+		if err != nil {
+			return err
+		}
+		err = IPTablesClient.DeleteIfExists("filter", FilterForwardChainName, fmt.Sprintf("-i %s -o %s -j ACCEPT", WireguardInterfaceName, oldBridgeId))
+		if err != nil {
+			return err
+		}
+	}
+
+	// Add new iptable rules
+	err = IPTablesClient.AppendUnique("filter", FilterForwardChainName, fmt.Sprintf("-i %s -o %s -j ACCEPT", newBridgeId, WireguardInterfaceName))
+	if err != nil {
+		return err
+	}
+	return IPTablesClient.AppendUnique("filter", FilterForwardChainName, fmt.Sprintf("-i %s -o %s -j ACCEPT", WireguardInterfaceName, newBridgeId))
+
 }
 
 // ------------- Wireguard -------------

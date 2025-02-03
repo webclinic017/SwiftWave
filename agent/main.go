@@ -24,5 +24,8 @@ func main() {
 	if err := InitiateDatabaseInstances(); err != nil {
 		panic(err)
 	}
+	if err := SetupIptablesChains(); err != nil {
+		panic(err)
+	}
 	rootCmd.Execute()
 }
