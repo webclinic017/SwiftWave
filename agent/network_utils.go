@@ -122,6 +122,28 @@ func (c *AgentConfig) SyncDockerBridge() error {
 			return fmt.Errorf("failed to add iptable rule to accept incoming traffic on docker bridge: %v", err)
 		}
 	}
+	// Allow forwarding from docker bridge as well
+	existsForward, err := IPTablesClient.Exists("filter", FilterForwardChainName, "-i", newBridgeId, "-j", "ACCEPT")
+	if err != nil {
+		return fmt.Errorf("failed to check existing forward rule: %v", err)
+	}
+	if !existsForward {
+		rules, err := IPTablesClient.List("filter", FilterForwardChainName)
+		if err != nil {
+			return fmt.Errorf("failed to list forward rules: %v", err)
+		}
+		position := len(rules) // default to last position
+		if position > 1 {
+			position = position - 1 // insert before last rule if exists
+		}
+		if position <= 0 {
+			position = 1
+		}
+		err = IPTablesClient.Insert("filter", FilterForwardChainName, position, "-i", newBridgeId, "-j", "ACCEPT")
+		if err != nil {
+			return fmt.Errorf("failed to add iptable rule to accept anything on docker bridge: %v", err)
+		}
+	}
 	return nil
 }
 
