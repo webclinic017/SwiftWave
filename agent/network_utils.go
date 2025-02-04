@@ -177,6 +177,11 @@ func (c *AgentConfig) SetupWireguard() error {
 		}
 	}
 
+	// Configure wireguard peers
+	if err := ConfigureWireguardPeers(); err != nil {
+		return fmt.Errorf("failed to configure wireguard peers: %v", err)
+	}
+
 	// Add iptable rules for wireguard interface
 	// First check if rules exist
 	existsForward, err := IPTablesClient.Exists("filter", "FORWARD", "-i", WireguardInterfaceName, "-j", "ACCEPT")
