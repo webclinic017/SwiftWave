@@ -62,3 +62,8 @@ func GenerateRandomString(length int) string {
 	}
 	return string(b)
 }
+
+func GetServiceStatus(serviceName string) bool {
+	_, _, err := RunCommand("systemctl is-active " + serviceName)
+	return err == nil
+}

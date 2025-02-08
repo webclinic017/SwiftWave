@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const DataplaneAPIBaseAddress = "http://localhost:3334"
+
 func installHAProxy(swiftwaveAddress string, dnsServer string, username string, password string) error {
 	commands := []string{
 		"apt remove haproxy -y || true",
