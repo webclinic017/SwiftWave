@@ -2,16 +2,18 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
 
+	"math/rand/v2"
+
 	"github.com/labstack/gommon/random"
 	"github.com/tredoe/osutil/user/crypt"
 	"github.com/tredoe/osutil/user/crypt/sha256_crypt"
-	"golang.org/x/exp/rand"
 )
 
 func RunCommand(command string) (input string, output string, err error) {
@@ -41,6 +43,24 @@ func GetCPUArchitecture() string {
 		return "arm64"
 	case "386":
 		return "i686"
+	case "arm":
+		return "arm"
+	case "ppc64":
+		return "ppc64"
+	case "ppc64le":
+		return "ppc64le"
+	case "mips":
+		return "mips"
+	case "mipsle":
+		return "mipsle"
+	case "mips64":
+		return "mips64"
+	case "mips64le":
+		return "mips64le"
+	case "riscv64":
+		return "riscv64"
+	case "s390x":
+		return "s390x"
 	default:
 		return "unknown"
 	}
@@ -58,12 +78,18 @@ func GenerateRandomString(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
+		b[i] = charset[rand.IntN(len(charset))]
 	}
 	return string(b)
 }
 
 func GetServiceStatus(serviceName string) bool {
 	_, _, err := RunCommand("systemctl is-active " + serviceName)
+	return err == nil
+}
+
+func IsValidJSON(data string) bool {
+	var js map[string]interface{}
+	err := json.Unmarshal([]byte(data), &js)
 	return err == nil
 }

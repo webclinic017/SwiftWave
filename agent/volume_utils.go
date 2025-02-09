@@ -9,15 +9,17 @@ import (
 	"github.com/docker/docker/api/types/volume"
 )
 
-var volumeBindsDefaultPath string
+var volumeBindsDefaultPath = "/root/docker-volumes"
 
 func init() {
-	volumePath, err := filepath.Abs("/home/tanmoy/docker-volumes")
-	if err != nil {
-		fmt.Println("Failed to get absolute path for volumes directory")
-		panic(err)
+	// Create the default volume directory if it doesn't exist
+	if _, err := os.Stat(volumeBindsDefaultPath); os.IsNotExist(err) {
+		err := os.MkdirAll(volumeBindsDefaultPath, 0700)
+		if err != nil {
+			fmt.Printf("Failed to create volume binds directory: %v", err)
+			os.Exit(1)
+		}
 	}
-	volumeBindsDefaultPath = volumePath
 }
 
 func (v *Volume) LocalVolumeFullPath() string {

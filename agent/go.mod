@@ -3,7 +3,7 @@ module agent
 go 1.23.3
 
 require (
-	github.com/docker/docker v27.4.1+incompatible
+	github.com/docker/docker v27.5.1+incompatible
 	gorm.io/gorm v1.25.7-0.20240204074919-46816ad31dde
 )
 

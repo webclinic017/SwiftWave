@@ -61,6 +61,8 @@ var startCmd = &cobra.Command{
 		_ = config.SyncDockerBridge()
 		SetupStaticRoutes()
 		_ = SetupIptables()
+		// Start background workers for containers
+		go StartContainerBgWorker()
 		// Start main process
 		go startHttpServer()
 		go startDnsServer()

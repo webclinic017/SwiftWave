@@ -3,40 +3,32 @@ package main
 type ContainerStatus string
 
 const (
-	ContainerStatusImagePulling ContainerStatus = "image_pulling"
-	ContainerStatusImagePullErr ContainerStatus = "image_pull_error"
-	ContainerStatusPending      ContainerStatus = "pending"
-	ContainerStatusRunning      ContainerStatus = "running"
-	ContainerStatusStopped      ContainerStatus = "stopped"
-	ContainerStatusExited       ContainerStatus = "exited"
+	ContainerStatusImagePullPending      ContainerStatus = "image_pull_pending"
+	ContainerStatusImagePulling          ContainerStatus = "image_pulling"
+	ContainerStatusImagePullAuthError    ContainerStatus = "image_pull_auth_error"
+	ContainerStatusImagePullArchMismatch ContainerStatus = "image_pull_arch_mismatch"
+	ContainerStatusImagePullFailed       ContainerStatus = "image_pull_failed"
+	ContainerStatusImagePulled           ContainerStatus = "image_pulled"
+	ContainerStatusCreated               ContainerStatus = "created"
+	ContainerStatusCreationFailed        ContainerStatus = "creation_failed"
+
+	// Logical status - fetch from docker
+
+	ContainerStatusRunning    ContainerStatus = "running"
+	ContainerStatusRestarting ContainerStatus = "restarting"
+	ContainerStatusExited     ContainerStatus = "exited"
+	ContainerStatusPaused     ContainerStatus = "paused"
+	ContainerStatusNotFound   ContainerStatus = "not_found"
 )
 
 type Container struct {
-	Name              string          `gorm:"column:name;index"`
-	ServiceName       string          `gorm:"column:service_name;index"`
-	Image             string          `gorm:"column:image;index"`
-	IPAddress         string          `gorm:"column:ip_address"`
-	Status            ContainerStatus `gorm:"column:status;default:pending"`
-	IsHealthy         bool            `gorm:"column:is_healthy;default:false"`
-	ExitReason        string          `gorm:"column:exit_reason"`
-	Entrypoint        string          `gorm:"column:entrypoint"`
-	Command           string          `gorm:"column:command;default:[]"`
-	NoNewPrivileges   bool            `gorm:"column:no_new_privileges;default:true"`
-	AddCapabilities   string          `gorm:"column:add_capabilities"`
-	MemorySoftLimitMB int64           `gorm:"column:memory_soft_limit_mb"`
-	MemoryHardLimitMB int64           `gorm:"column:memory_hard_limit_mb"`
-}
-
-type EnvironmentVariable struct {
-	Name          string `gorm:"column:name"`
-	Value         string `gorm:"column:value"`
-	ContainerName string `gorm:"column:container_name;index"`
-}
-
-type VolumeMount struct {
-	MountPath     string `gorm:"column:mount_path"`
-	VolumeUUID    string `gorm:"column:volume_uuid;index"`
-	ContainerName string `gorm:"column:container_name;index"`
+	UUID            string          `gorm:"column:uuid;primaryKey"`
+	ImageURI        string          `gorm:"column:image_uri"`
+	ImageAuthHeader string          `gorm:"column:image_auth_header"`
+	ImagePulled     bool            `gorm:"column:image_pulled"`
+	Data            string          `gorm:"column:data"`
+	StaticConfig    string          `gorm:"column:static_config"` // json string
+	Status          ContainerStatus `gorm:"column:status"`
 }
 
 type VolumeType string

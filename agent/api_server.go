@@ -2,6 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"log"
+	"net"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -25,21 +28,6 @@ func startHttpServer() {
 	// 		return next(c)
 	// 	}
 	// })
-
-	// Container API
-
-	// Create + Remove + Status + Logs
-	// Container is mutable
-	// For update, swiftwave will remove previous container and create a new one
-
-	/*
-		For zero downtime deployment, we can use the following steps:
-		1. Create a new container with the new image
-		2. Wait for the new container to be ready
-		3. Update the DNS record to point to the new container
-		4. Remove the old DNS records
-		5. Remove the old containers
-	*/
 
 	// Volume API
 	e.GET("/volumes", fetchAllVolumes)
@@ -77,7 +65,24 @@ func startHttpServer() {
 	e.GET("/haproxy/service-status", getHAProxyStatus)
 	e.Any("/haproxy/*", sendRequestToHAProxy)
 
-	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	// Docker API
+	e.Any("/docker/*", sendRequestToDocker)
+
+	// Container API
+	e.POST("/containers", createContainer)
+	e.DELETE("/containers/:uuid", deleteContainer)
+	e.GET("/containers/:uuid/status", statusOfContainer)
+
+	config, err := GetConfig()
+	if err != nil {
+		log.Fatalf("Failed to fetch config: %v", err)
+	}
+	ip, _, err := net.ParseCIDR(config.WireguardConfig.Address)
+	if err != nil {
+		log.Fatalf("Failed to parse wireguard address: %v", err)
+	}
+
+	if err := e.Start(fmt.Sprintf("%s:3332", ip.String())); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		e.Logger.Fatal(err)
 	}
 }

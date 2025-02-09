@@ -67,15 +67,6 @@ func (v *Volume) Create() error {
 }
 
 func (v *Volume) Delete(deleteDirectory bool) error {
-	// Check if there is any volume mounted to any container
-	var count int64
-	if err := rDB.Model(&VolumeMount{}).Where("volume_uuid = ?", v.UUID).Count(&count).Error; err != nil {
-		return err
-	}
-	if count > 0 {
-		return fmt.Errorf("volume is mounted to %d containers", count)
-	}
-
 	// Pass the deleteDirectory flag to remove the data directory in case of local volume
 	// Do this if we get this explicitly from the caller
 	err := v.RemoveVolume(deleteDirectory)

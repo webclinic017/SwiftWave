@@ -25,3 +25,7 @@ type FileInfo struct {
 type WireguardPeerUpdate struct {
 	EndpointIP string `json:"endpoint_ip"`
 }
+
+type StaticConfig struct {
+	Content string `json:"content"`
+}

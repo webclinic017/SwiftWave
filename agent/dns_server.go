@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net"
 	"strings"
 
 	"github.com/miekg/dns"
@@ -63,7 +65,15 @@ func startDnsServer() {
 		}
 		_ = w.WriteMsg(m)
 	})
-	server := &dns.Server{Addr: "127.0.0.1:6464", Net: "udp"}
+	config, err := GetConfig()
+	if err != nil {
+		log.Fatalf("Failed to fetch config: %v", err)
+	}
+	ip, _, err := net.ParseCIDR(config.WireguardConfig.Address)
+	if err != nil {
+		log.Fatalf("Failed to parse wireguard address: %v", err)
+	}
+	server := &dns.Server{Addr: fmt.Sprintf("%s:53", ip.String()), Net: "udp"}
 	log.Printf("Starting DNS server at %s\n", server.Addr)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("Failed to start DNS server: %s\n ", err)
