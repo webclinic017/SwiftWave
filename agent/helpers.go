@@ -93,3 +93,31 @@ func IsValidJSON(data string) bool {
 	err := json.Unmarshal([]byte(data), &js)
 	return err == nil
 }
+
+func openFileInEditor(filePath string) {
+	// Check if the $EDITOR environment variable is set
+	editor := os.Getenv("EDITOR")
+
+	if editor != "" {
+		// $EDITOR is set, use it to open the file
+		cmd := exec.Command(editor, filePath)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = nil
+
+		if err := cmd.Run(); err != nil {
+			fmt.Println("Error opening file with " + editor)
+		}
+	} else {
+		// $EDITOR is not set, try using mimeopen
+		cmd := exec.Command("mimeopen", "-d", filePath)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = nil
+
+		if err := cmd.Run(); err != nil {
+			fmt.Println("Error opening file with mimeopen")
+			fmt.Println("Set the $EDITOR environment variable to open the file with your preferred editor")
+		}
+	}
+}

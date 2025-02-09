@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
@@ -17,6 +19,7 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(getConfig)
+	rootCmd.AddCommand(editConfig)
 	rootCmd.AddCommand(syncDockerBridge)
 	rootCmd.AddCommand(dbMigrate)
 	rootCmd.AddCommand(cleanup)
@@ -268,6 +271,68 @@ var getConfig = &cobra.Command{
 		cmd.Printf("  • Username ---------- %s\n", config.HaproxyConfig.Username)
 		cmd.Printf("  • Password ---------- %s\n", config.HaproxyConfig.Password)
 	},
+}
+
+var editConfig = &cobra.Command{
+	Use: "edit-config",
+	Run: func(cmd *cobra.Command, args []string) {
+		config, err := GetConfig()
+		if err != nil {
+			cmd.PrintErr(err.Error())
+			cmd.Println("Failed to fetch config")
+			return
+		}
+		configJson, err := json.MarshalIndent(config, "", "  ")
+		if err != nil {
+			cmd.PrintErr(err.Error())
+			cmd.Println("Failed to generate config json")
+			return
+		}
+		// Store this in a temporary file
+		tmpFile, err := os.CreateTemp("", "swiftwave-agent-config-*.json")
+		if err != nil {
+			cmd.PrintErr(err.Error())
+			cmd.Println("Failed to create temporary file")
+			return
+		}
+		defer os.Remove(tmpFile.Name())
+		if _, err := tmpFile.Write(configJson); err != nil {
+			cmd.PrintErr(err.Error())
+			cmd.Println("Failed to write config to temporary file")
+			return
+		}
+		// Open the temporary file in the default editor
+		openFileInEditor(tmpFile.Name())
+		// Read the contents of the temporary file
+		fileContents, err := os.ReadFile(tmpFile.Name())
+		if err != nil {
+			cmd.PrintErr(err.Error())
+			cmd.Println("Failed to read temporary file")
+			return
+		}
+		// Unmarshal the contents of the temporary file into a new config
+		var newConfig AgentConfig
+		if err := json.Unmarshal(fileContents, &newConfig); err != nil {
+			cmd.PrintErr(err.Error())
+			cmd.Println("Failed to unmarshal temporary file contents")
+			return
+		}
+		newConfig.ID = config.ID
+		// Compare the new config with the old config
+		if !reflect.DeepEqual(config, &newConfig) {
+			// The new config is different from the old config, update the config
+			if err := SetConfig(&newConfig); err != nil {
+				cmd.PrintErr(err.Error())
+				cmd.Println("Failed to update config")
+				return
+			}
+			cmd.Println("Config updated successfully")
+		} else {
+			cmd.Println("Config is already up to date")
+		}
+
+	},
+	Args: cobra.NoArgs,
 }
 
 var cleanup = &cobra.Command{
