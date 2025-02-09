@@ -44,6 +44,7 @@ require (
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/coreos/go-iptables v0.8.0
+	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect

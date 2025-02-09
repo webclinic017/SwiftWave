@@ -32,3 +32,10 @@ type StaticConfig struct {
 	Name    string `json:"name"`
 	Content string `json:"content"`
 }
+
+type JournalRequest struct {
+	Key       string   `json:"key"`
+	Value     string   `json:"value"`
+	Fields    []string `json:"fields"`
+	SinceTime string   `json:"since_time"` // RFC3339 format timestamp
+}

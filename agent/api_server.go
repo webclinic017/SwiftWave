@@ -18,6 +18,7 @@ func startHttpServer() {
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
 	}))
+	e.Use(middleware.Recover())
 
 	config, err := GetConfig()
 	if err != nil {
@@ -84,6 +85,9 @@ func startHttpServer() {
 	if err != nil {
 		log.Fatalf("Failed to parse wireguard address: %v", err)
 	}
+
+	// Log API
+	e.GET("/journald/stream", streamJournalLogs)
 
 	if err := e.Start(fmt.Sprintf("%s:3332", ip.String())); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		e.Logger.Fatal(err)

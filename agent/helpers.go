@@ -35,6 +35,18 @@ func RunCommandWithoutBuffer(command string) error {
 	return cmd.Run()
 }
 
+func InstallToolIfNotExists(toolName string, installCmd string) error {
+	_, err := exec.LookPath(toolName)
+	if err != nil {
+		fmt.Println("Installing " + toolName + "...")
+		err = RunCommandWithoutBuffer(installCmd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func GetCPUArchitecture() string {
 	switch runtime.GOARCH {
 	case "amd64":
