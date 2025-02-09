@@ -8,10 +8,10 @@ import (
 )
 
 func (c *AgentConfig) UpdateDockerDaemonConfig() error {
-	// Get ip from wireguard address
+	// Get ip from swiftwave address
 	ip, _, err := net.SplitHostPort(c.SwiftwaveServiceAddress)
 	if err != nil {
-		return fmt.Errorf("failed to parse wireguard address: %w", err)
+		return fmt.Errorf("failed to parse swiftwave address: %w", err)
 	}
 	config := map[string]interface{}{
 		"live-restore":        true,
