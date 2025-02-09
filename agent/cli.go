@@ -115,6 +115,37 @@ var setupCmd = &cobra.Command{
 			nodeType = MasterNode
 		}
 
+		// Install required tools
+		cmd.Println("Installing required tools...")
+		cmd.Println("This may take a few minutes...")
+		cmd.Println()
+		err = RunCommandWithoutBuffer("apt install -y libsystemd-dev")
+		if err != nil {
+			cmd.PrintErr("Failed to install libsystemd-dev")
+			return
+		}
+		err = InstallToolIfNotExists("wg", "apt install -y wireguard-tools")
+		if err != nil {
+			cmd.PrintErr("Failed to install wireguard-tools")
+			return
+		}
+		err = InstallToolIfNotExists("curl", "apt install -y curl")
+		if err != nil {
+			cmd.PrintErr("Failed to install curl")
+			return
+		}
+		err = InstallToolIfNotExists("iptables", "apt install -y iptables")
+		if err != nil {
+			cmd.PrintErr("Failed to install iptables")
+			return
+		}
+		err = InstallToolIfNotExists("docker", "curl -fsSL https://get.docker.com | sh")
+		if err != nil {
+			cmd.PrintErr("Failed to install docker")
+			return
+		}
+
+		// Setup
 		config := AgentConfig{
 			AuthTokenHash:           cmd.Flag("auth-token-hash").Value.String(),
 			NodeType:                nodeType,
