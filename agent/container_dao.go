@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
@@ -39,9 +41,16 @@ func (c *Container) Validate() error {
 	if err != nil {
 		return fmt.Errorf("data is not valid container config")
 	}
-	// check if static config is valid json
-	if c.StaticConfig != "" && !IsValidJSON(c.StaticConfig) {
+	var staticConfigs []StaticConfig
+	err = json.Unmarshal([]byte(c.StaticConfigs), &staticConfigs)
+	if err != nil {
 		return fmt.Errorf("static config is not valid json")
+	}
+	// static configs name shouldn't be empty or have spaces
+	for _, staticConfig := range staticConfigs {
+		if staticConfig.Name == "" || strings.Contains(staticConfig.Name, " ") {
+			return fmt.Errorf("static config name is not valid")
+		}
 	}
 	return nil
 }
@@ -66,6 +75,11 @@ func (c *Container) Remove() error {
 	err := rwDB.Model(&Container{}).Where("uuid = ?", c.UUID).Delete(&Container{}).Error
 	if err != nil {
 		return fmt.Errorf("failed to delete from db : %v", err)
+	}
+	// Try to delete the static configs
+	staticConfigs := c.GetStaticConfigs()
+	for _, staticConfig := range staticConfigs {
+		_ = os.Remove(filepath.Join(configDirectory, staticConfig.Name))
 	}
 	return nil
 }

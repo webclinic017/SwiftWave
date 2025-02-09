@@ -26,6 +26,9 @@ type WireguardPeerUpdate struct {
 	EndpointIP string `json:"endpoint_ip"`
 }
 
+type StaticConfigs []StaticConfig
+
 type StaticConfig struct {
+	Name    string `json:"name"`
 	Content string `json:"content"`
 }

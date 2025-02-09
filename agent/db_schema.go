@@ -27,7 +27,7 @@ type Container struct {
 	ImageAuthHeader string          `gorm:"column:image_auth_header"`
 	ImagePulled     bool            `gorm:"column:image_pulled"`
 	Data            string          `gorm:"column:data"`
-	StaticConfig    string          `gorm:"column:static_config"` // json string
+	StaticConfigs   string          `gorm:"column:static_configs"` // json string of []StaticConfig
 	Status          ContainerStatus `gorm:"column:status"`
 }
 
