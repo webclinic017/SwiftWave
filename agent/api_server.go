@@ -37,6 +37,10 @@ func startHttpServer() {
 		}
 	})
 
+	// General API
+	e.GET("/ping", getPing)
+	e.GET("/version", getVersion)
+
 	// Volume API
 	e.GET("/volumes", fetchAllVolumes)
 	e.GET("/volumes/:uuid", fetchVolume)
