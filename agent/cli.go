@@ -21,6 +21,7 @@ func init() {
 	rootCmd.AddCommand(dbMigrate)
 	rootCmd.AddCommand(cleanup)
 
+	setupCmd.Flags().String("auth-token-hash", "", "Auth token hash")
 	setupCmd.Flags().String("wireguard-private-key", "", "Wireguard private key")
 	setupCmd.Flags().String("wireguard-address", "", "Wireguard address")
 	setupCmd.Flags().String("docker-network-gateway-address", "", "Docker network gateway address")
@@ -33,6 +34,7 @@ func init() {
 	setupCmd.Flags().String("master-node-public-key", "", "Master server public key")
 	setupCmd.Flags().String("master-node-allowed-ips", "", "Master server allowed ips")
 
+	setupCmd.MarkFlagRequired("auth-token-hash")
 	setupCmd.MarkFlagRequired("wireguard-private-key")
 	setupCmd.MarkFlagRequired("wireguard-address")
 	setupCmd.MarkFlagRequired("docker-network-gateway-address")
@@ -111,6 +113,7 @@ var setupCmd = &cobra.Command{
 		}
 
 		config := AgentConfig{
+			AuthTokenHash:           cmd.Flag("auth-token-hash").Value.String(),
 			NodeType:                nodeType,
 			SwiftwaveServiceAddress: cmd.Flag("swiftwave-service-address").Value.String(),
 			WireguardConfig: WireguardConfig{

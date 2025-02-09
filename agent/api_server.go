@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func startHttpServer() {
@@ -18,16 +19,22 @@ func startHttpServer() {
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
 	}))
 
+	config, err := GetConfig()
+	if err != nil {
+		log.Fatalf("Failed to fetch config: %v", err)
+	}
+
 	// Auth middleware
-	// e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-	// 	return func(c echo.Context) error {
-	// 		token := c.Request().Header.Get("Authorization")
-	// 		if token != "Token" {
-	// 			return c.JSON(http.StatusUnauthorized, "Unauthorized")
-	// 		}
-	// 		return next(c)
-	// 	}
-	// })
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			token := c.Request().Header.Get("Authorization")
+			err := bcrypt.CompareHashAndPassword([]byte(config.AuthTokenHash), []byte(token))
+			if err != nil || token == "" || config.AuthTokenHash == "" {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid token"})
+			}
+			return next(c)
+		}
+	})
 
 	// Volume API
 	e.GET("/volumes", fetchAllVolumes)
@@ -73,10 +80,6 @@ func startHttpServer() {
 	e.DELETE("/containers/:uuid", deleteContainer)
 	e.GET("/containers/:uuid/status", statusOfContainer)
 
-	config, err := GetConfig()
-	if err != nil {
-		log.Fatalf("Failed to fetch config: %v", err)
-	}
 	ip, _, err := net.ParseCIDR(config.WireguardConfig.Address)
 	if err != nil {
 		log.Fatalf("Failed to parse wireguard address: %v", err)

@@ -14,6 +14,7 @@ const (
 
 type AgentConfig struct {
 	ID                      uint                    `gorm:"primaryKey"`
+	AuthTokenHash           string                  `json:"auth_token_hash" gorm:"column:auth_token_hash"`
 	NodeType                NodeType                `json:"node_type" gorm:"column:node_type"`
 	SwiftwaveServiceAddress string                  `json:"swiftwave_service_address" gorm:"column:swiftwave_service_address"`
 	WireguardConfig         WireguardConfig         `json:"wireguard_config" gorm:"embedded;embeddedPrefix:wireguard_"`
