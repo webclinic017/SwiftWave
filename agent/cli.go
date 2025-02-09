@@ -205,6 +205,16 @@ var setupCmd = &cobra.Command{
 			}
 		}()
 
+		// Update docker daemon config
+		err = config.UpdateDockerDaemonConfig()
+		if err != nil {
+			cmd.PrintErr(err.Error())
+			return
+		}
+
+		// Restart docker
+		_ = RunCommandWithoutBuffer("systemctl restart docker")
+
 		// Get ip from wireguard address
 		ip, _, err := net.ParseCIDR(config.WireguardConfig.Address)
 		if err != nil {
