@@ -81,13 +81,13 @@ func startHttpServer() {
 	e.DELETE("/containers/:uuid", deleteContainer)
 	e.GET("/containers/:uuid/status", statusOfContainer)
 
+	// Log API
+	e.GET("/journald/stream", streamJournalLogs)
+
 	ip, _, err := net.ParseCIDR(config.WireguardConfig.Address)
 	if err != nil {
 		log.Fatalf("Failed to parse wireguard address: %v", err)
 	}
-
-	// Log API
-	e.GET("/journald/stream", streamJournalLogs)
 
 	if err := e.Start(fmt.Sprintf("%s:3332", ip.String())); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		e.Logger.Fatal(err)
