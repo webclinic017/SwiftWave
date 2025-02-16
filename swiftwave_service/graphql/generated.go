@@ -309,13 +309,10 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddCustomSsl                                       func(childComplexity int, id uint, input model.CustomSSLInput) int
 		AddDomain                                          func(childComplexity int, input model.DomainInput) int
-		AllowDeploymentOnServer                            func(childComplexity int, id uint) int
 		BackupPersistentVolume                             func(childComplexity int, input model.PersistentVolumeBackupInput) int
 		CancelDeployment                                   func(childComplexity int, id string) int
 		ChangePassword                                     func(childComplexity int, input *model.PasswordUpdateInput) int
 		ChangeServerIPAddress                              func(childComplexity int, id uint, ip string) int
-		ChangeServerSSHPort                                func(childComplexity int, id uint, port int) int
-		CheckDependenciesOnServer                          func(childComplexity int, id uint) int
 		CleanupStack                                       func(childComplexity int, input model.StackInput) int
 		CreateAppBasicAuthAccessControlList                func(childComplexity int, input model.AppBasicAuthAccessControlListInput) int
 		CreateAppBasicAuthAccessControlUser                func(childComplexity int, input model.AppBasicAuthAccessControlUserInput) int
@@ -343,36 +340,25 @@ type ComplexityRoot struct {
 		DeleteRedirectRule                                 func(childComplexity int, id uint) int
 		DeleteServer                                       func(childComplexity int, id uint) int
 		DeleteUser                                         func(childComplexity int, id uint) int
-		DemoteServerToWorker                               func(childComplexity int, id uint) int
 		DeployStack                                        func(childComplexity int, input model.StackInput) int
 		DisableHTTPSRedirectIngressRule                    func(childComplexity int, id uint) int
 		DisableIngressRuleProtection                       func(childComplexity int, id uint) int
-		DisableProxyOnServer                               func(childComplexity int, id uint) int
 		DisableTotp                                        func(childComplexity int) int
 		EnableHTTPSRedirectIngressRule                     func(childComplexity int, id uint) int
-		EnableProxyOnServer                                func(childComplexity int, id uint, typeArg model.ProxyType) int
 		EnableTotp                                         func(childComplexity int, totp string) int
 		FetchAnalyticsServiceToken                         func(childComplexity int, id uint, rotate bool) int
-		InstallDependenciesOnServer                        func(childComplexity int, id uint) int
 		IssueSsl                                           func(childComplexity int, id uint) int
 		Login                                              func(childComplexity int, input model.UserCredential) int
 		Logout                                             func(childComplexity int) int
-		PromoteServerToManager                             func(childComplexity int, id uint) int
 		ProtectIngressRuleUsingBasicAuth                   func(childComplexity int, id uint, appBasicAuthAccessControlListID uint) int
-		PutServerInMaintenanceMode                         func(childComplexity int, id uint) int
-		PutServerOutOfMaintenanceMode                      func(childComplexity int, id uint) int
 		RebuildApplication                                 func(childComplexity int, id string) int
 		RecreateIngressRule                                func(childComplexity int, id uint) int
 		RegenerateWebhookToken                             func(childComplexity int, id string) int
 		RemoveDomain                                       func(childComplexity int, id uint) int
-		RemoveServerFromSwarmCluster                       func(childComplexity int, id uint) int
 		RequestTotpEnable                                  func(childComplexity int) int
 		RestartApplication                                 func(childComplexity int, id string) int
 		RestartSystem                                      func(childComplexity int) int
-		RestrictDeploymentOnServer                         func(childComplexity int, id uint) int
-		SetupServer                                        func(childComplexity int, input model.ServerSetupInput) int
 		SleepApplication                                   func(childComplexity int, id string) int
-		TestSSHAccessToServer                              func(childComplexity int, id uint) int
 		UpdateAppBasicAuthAccessControlUserPassword        func(childComplexity int, id uint, password string) int
 		UpdateApplication                                  func(childComplexity int, id string, input model.ApplicationInput) int
 		UpdateApplicationGroup                             func(childComplexity int, id string, groupID *string) int
@@ -457,13 +443,11 @@ type ComplexityRoot struct {
 		IsExistApplicationName             func(childComplexity int, name string) int
 		IsExistPersistentVolume            func(childComplexity int, name string) int
 		IsNewIngressRuleValid              func(childComplexity int, input model.IngressRuleValidationInput) int
-		NetworkInterfacesOnServer          func(childComplexity int, id uint) int
 		NoOfPreparedServers                func(childComplexity int) int
 		NoOfServers                        func(childComplexity int) int
 		PersistentVolume                   func(childComplexity int, id uint) int
 		PersistentVolumeSizeMb             func(childComplexity int, id uint) int
 		PersistentVolumes                  func(childComplexity int) int
-		PublicSSHKey                       func(childComplexity int) int
 		RedirectRule                       func(childComplexity int, id uint) int
 		RedirectRules                      func(childComplexity int) int
 		Server                             func(childComplexity int, id uint) int
@@ -679,22 +663,8 @@ type MutationResolver interface {
 	DeleteRedirectRule(ctx context.Context, id uint) (bool, error)
 	CreateServer(ctx context.Context, input model.NewServerInput) (*model.Server, error)
 	DeleteServer(ctx context.Context, id uint) (bool, error)
-	TestSSHAccessToServer(ctx context.Context, id uint) (bool, error)
-	CheckDependenciesOnServer(ctx context.Context, id uint) ([]*model.Dependency, error)
-	InstallDependenciesOnServer(ctx context.Context, id uint) (bool, error)
-	SetupServer(ctx context.Context, input model.ServerSetupInput) (bool, error)
-	PromoteServerToManager(ctx context.Context, id uint) (bool, error)
-	DemoteServerToWorker(ctx context.Context, id uint) (bool, error)
-	RestrictDeploymentOnServer(ctx context.Context, id uint) (bool, error)
-	AllowDeploymentOnServer(ctx context.Context, id uint) (bool, error)
-	PutServerInMaintenanceMode(ctx context.Context, id uint) (bool, error)
-	PutServerOutOfMaintenanceMode(ctx context.Context, id uint) (bool, error)
-	RemoveServerFromSwarmCluster(ctx context.Context, id uint) (bool, error)
-	EnableProxyOnServer(ctx context.Context, id uint, typeArg model.ProxyType) (bool, error)
-	DisableProxyOnServer(ctx context.Context, id uint) (bool, error)
 	FetchAnalyticsServiceToken(ctx context.Context, id uint, rotate bool) (string, error)
 	ChangeServerIPAddress(ctx context.Context, id uint, ip string) (bool, error)
-	ChangeServerSSHPort(ctx context.Context, id uint, port int) (bool, error)
 	CleanupStack(ctx context.Context, input model.StackInput) (string, error)
 	VerifyStack(ctx context.Context, input model.StackInput) (*model.StackVerifyResult, error)
 	DeployStack(ctx context.Context, input model.StackInput) ([]*model.ApplicationDeployResult, error)
@@ -750,12 +720,10 @@ type QueryResolver interface {
 	NoOfPreparedServers(ctx context.Context) (int, error)
 	Servers(ctx context.Context) ([]*model.Server, error)
 	Server(ctx context.Context, id uint) (*model.Server, error)
-	PublicSSHKey(ctx context.Context) (string, error)
 	ServerResourceAnalytics(ctx context.Context, id uint, timeframe model.ServerResourceAnalyticsTimeframe) ([]*model.ServerResourceAnalytics, error)
 	ServerDiskUsage(ctx context.Context, id uint) ([]*model.ServerDisksUsage, error)
 	ServerLatestResourceAnalytics(ctx context.Context, id uint) (*model.ServerResourceAnalytics, error)
 	ServerLatestDiskUsage(ctx context.Context, id uint) (*model.ServerDisksUsage, error)
-	NetworkInterfacesOnServer(ctx context.Context, id uint) ([]*model.NetworkInterface, error)
 	FetchServerLogContent(ctx context.Context, id uint) (string, error)
 	FetchSystemLogRecords(ctx context.Context) ([]*model.FileInfo, error)
 	Users(ctx context.Context) ([]*model.User, error)
@@ -2032,18 +2000,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddDomain(childComplexity, args["input"].(model.DomainInput)), true
 
-	case "Mutation.allowDeploymentOnServer":
-		if e.complexity.Mutation.AllowDeploymentOnServer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_allowDeploymentOnServer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AllowDeploymentOnServer(childComplexity, args["id"].(uint)), true
-
 	case "Mutation.backupPersistentVolume":
 		if e.complexity.Mutation.BackupPersistentVolume == nil {
 			break
@@ -2091,30 +2047,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ChangeServerIPAddress(childComplexity, args["id"].(uint), args["ip"].(string)), true
-
-	case "Mutation.changeServerSSHPort":
-		if e.complexity.Mutation.ChangeServerSSHPort == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_changeServerSSHPort_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.ChangeServerSSHPort(childComplexity, args["id"].(uint), args["port"].(int)), true
-
-	case "Mutation.checkDependenciesOnServer":
-		if e.complexity.Mutation.CheckDependenciesOnServer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_checkDependenciesOnServer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CheckDependenciesOnServer(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.cleanupStack":
 		if e.complexity.Mutation.CleanupStack == nil {
@@ -2440,18 +2372,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteUser(childComplexity, args["id"].(uint)), true
 
-	case "Mutation.demoteServerToWorker":
-		if e.complexity.Mutation.DemoteServerToWorker == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_demoteServerToWorker_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DemoteServerToWorker(childComplexity, args["id"].(uint)), true
-
 	case "Mutation.deployStack":
 		if e.complexity.Mutation.DeployStack == nil {
 			break
@@ -2488,18 +2408,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DisableIngressRuleProtection(childComplexity, args["id"].(uint)), true
 
-	case "Mutation.disableProxyOnServer":
-		if e.complexity.Mutation.DisableProxyOnServer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_disableProxyOnServer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DisableProxyOnServer(childComplexity, args["id"].(uint)), true
-
 	case "Mutation.disableTotp":
 		if e.complexity.Mutation.DisableTotp == nil {
 			break
@@ -2518,18 +2426,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EnableHTTPSRedirectIngressRule(childComplexity, args["id"].(uint)), true
-
-	case "Mutation.enableProxyOnServer":
-		if e.complexity.Mutation.EnableProxyOnServer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_enableProxyOnServer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.EnableProxyOnServer(childComplexity, args["id"].(uint), args["type"].(model.ProxyType)), true
 
 	case "Mutation.enableTotp":
 		if e.complexity.Mutation.EnableTotp == nil {
@@ -2554,18 +2450,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.FetchAnalyticsServiceToken(childComplexity, args["id"].(uint), args["rotate"].(bool)), true
-
-	case "Mutation.installDependenciesOnServer":
-		if e.complexity.Mutation.InstallDependenciesOnServer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_installDependenciesOnServer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.InstallDependenciesOnServer(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.issueSSL":
 		if e.complexity.Mutation.IssueSsl == nil {
@@ -2598,18 +2482,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Logout(childComplexity), true
 
-	case "Mutation.promoteServerToManager":
-		if e.complexity.Mutation.PromoteServerToManager == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_promoteServerToManager_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PromoteServerToManager(childComplexity, args["id"].(uint)), true
-
 	case "Mutation.protectIngressRuleUsingBasicAuth":
 		if e.complexity.Mutation.ProtectIngressRuleUsingBasicAuth == nil {
 			break
@@ -2621,30 +2493,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ProtectIngressRuleUsingBasicAuth(childComplexity, args["id"].(uint), args["appBasicAuthAccessControlListId"].(uint)), true
-
-	case "Mutation.putServerInMaintenanceMode":
-		if e.complexity.Mutation.PutServerInMaintenanceMode == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_putServerInMaintenanceMode_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PutServerInMaintenanceMode(childComplexity, args["id"].(uint)), true
-
-	case "Mutation.putServerOutOfMaintenanceMode":
-		if e.complexity.Mutation.PutServerOutOfMaintenanceMode == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_putServerOutOfMaintenanceMode_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PutServerOutOfMaintenanceMode(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.rebuildApplication":
 		if e.complexity.Mutation.RebuildApplication == nil {
@@ -2694,18 +2542,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RemoveDomain(childComplexity, args["id"].(uint)), true
 
-	case "Mutation.removeServerFromSwarmCluster":
-		if e.complexity.Mutation.RemoveServerFromSwarmCluster == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_removeServerFromSwarmCluster_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RemoveServerFromSwarmCluster(childComplexity, args["id"].(uint)), true
-
 	case "Mutation.requestTotpEnable":
 		if e.complexity.Mutation.RequestTotpEnable == nil {
 			break
@@ -2732,30 +2568,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RestartSystem(childComplexity), true
 
-	case "Mutation.restrictDeploymentOnServer":
-		if e.complexity.Mutation.RestrictDeploymentOnServer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_restrictDeploymentOnServer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RestrictDeploymentOnServer(childComplexity, args["id"].(uint)), true
-
-	case "Mutation.setupServer":
-		if e.complexity.Mutation.SetupServer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_setupServer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SetupServer(childComplexity, args["input"].(model.ServerSetupInput)), true
-
 	case "Mutation.sleepApplication":
 		if e.complexity.Mutation.SleepApplication == nil {
 			break
@@ -2767,18 +2579,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SleepApplication(childComplexity, args["id"].(string)), true
-
-	case "Mutation.testSSHAccessToServer":
-		if e.complexity.Mutation.TestSSHAccessToServer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_testSSHAccessToServer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.TestSSHAccessToServer(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.updateAppBasicAuthAccessControlUserPassword":
 		if e.complexity.Mutation.UpdateAppBasicAuthAccessControlUserPassword == nil {
@@ -3341,18 +3141,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.IsNewIngressRuleValid(childComplexity, args["input"].(model.IngressRuleValidationInput)), true
 
-	case "Query.networkInterfacesOnServer":
-		if e.complexity.Query.NetworkInterfacesOnServer == nil {
-			break
-		}
-
-		args, err := ec.field_Query_networkInterfacesOnServer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.NetworkInterfacesOnServer(childComplexity, args["id"].(uint)), true
-
 	case "Query.noOfPreparedServers":
 		if e.complexity.Query.NoOfPreparedServers == nil {
 			break
@@ -3397,13 +3185,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.PersistentVolumes(childComplexity), true
-
-	case "Query.publicSSHKey":
-		if e.complexity.Query.PublicSSHKey == nil {
-			break
-		}
-
-		return e.complexity.Query.PublicSSHKey(childComplexity), true
 
 	case "Query.redirectRule":
 		if e.complexity.Query.RedirectRule == nil {
@@ -4249,21 +4030,6 @@ func (ec *executionContext) field_Mutation_addDomain_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_allowDeploymentOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_backupPersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4330,45 +4096,6 @@ func (ec *executionContext) field_Mutation_changeServerIpAddress_args(ctx contex
 		}
 	}
 	args["ip"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_changeServerSSHPort_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["port"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["port"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_checkDependenciesOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -4777,21 +4504,6 @@ func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_demoteServerToWorker_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_deployStack_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4837,21 +4549,6 @@ func (ec *executionContext) field_Mutation_disableIngressRuleProtection_args(ctx
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_disableProxyOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_enableHttpsRedirectIngressRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4864,30 +4561,6 @@ func (ec *executionContext) field_Mutation_enableHttpsRedirectIngressRule_args(c
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_enableProxyOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 model.ProxyType
-	if tmp, ok := rawArgs["type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-		arg1, err = ec.unmarshalNProxyType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProxyType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["type"] = arg1
 	return args, nil
 }
 
@@ -4930,21 +4603,6 @@ func (ec *executionContext) field_Mutation_fetchAnalyticsServiceToken_args(ctx c
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_installDependenciesOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_issueSSL_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4975,21 +4633,6 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_promoteServerToManager_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_protectIngressRuleUsingBasicAuth_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5011,36 +4654,6 @@ func (ec *executionContext) field_Mutation_protectIngressRuleUsingBasicAuth_args
 		}
 	}
 	args["appBasicAuthAccessControlListId"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_putServerInMaintenanceMode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_putServerOutOfMaintenanceMode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -5104,21 +4717,6 @@ func (ec *executionContext) field_Mutation_removeDomain_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_removeServerFromSwarmCluster_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_restartApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5134,36 +4732,6 @@ func (ec *executionContext) field_Mutation_restartApplication_args(ctx context.C
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_restrictDeploymentOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_setupServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.ServerSetupInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNServerSetupInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerSetupInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_sleepApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5171,21 +4739,6 @@ func (ec *executionContext) field_Mutation_sleepApplication_args(ctx context.Con
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_testSSHAccessToServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5620,21 +5173,6 @@ func (ec *executionContext) field_Query_isNewIngressRuleValid_args(ctx context.C
 		}
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_networkInterfacesOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -18009,984 +17547,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteServer(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_testSSHAccessToServer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_testSSHAccessToServer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().TestSSHAccessToServer(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_testSSHAccessToServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_testSSHAccessToServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_checkDependenciesOnServer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_checkDependenciesOnServer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CheckDependenciesOnServer(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*model.Dependency); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model.Dependency`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Dependency)
-	fc.Result = res
-	return ec.marshalODependency2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDependencyᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_checkDependenciesOnServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext_Dependency_name(ctx, field)
-			case "available":
-				return ec.fieldContext_Dependency_available(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Dependency", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_checkDependenciesOnServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_installDependenciesOnServer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_installDependenciesOnServer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().InstallDependenciesOnServer(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_installDependenciesOnServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_installDependenciesOnServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_setupServer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_setupServer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().SetupServer(rctx, fc.Args["input"].(model.ServerSetupInput))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_setupServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_setupServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_promoteServerToManager(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_promoteServerToManager(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().PromoteServerToManager(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_promoteServerToManager(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_promoteServerToManager_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_demoteServerToWorker(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_demoteServerToWorker(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DemoteServerToWorker(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_demoteServerToWorker(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_demoteServerToWorker_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_restrictDeploymentOnServer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_restrictDeploymentOnServer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().RestrictDeploymentOnServer(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_restrictDeploymentOnServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_restrictDeploymentOnServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_allowDeploymentOnServer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_allowDeploymentOnServer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().AllowDeploymentOnServer(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_allowDeploymentOnServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_allowDeploymentOnServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_putServerInMaintenanceMode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_putServerInMaintenanceMode(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().PutServerInMaintenanceMode(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_putServerInMaintenanceMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_putServerInMaintenanceMode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_putServerOutOfMaintenanceMode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_putServerOutOfMaintenanceMode(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().PutServerOutOfMaintenanceMode(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_putServerOutOfMaintenanceMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_putServerOutOfMaintenanceMode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_removeServerFromSwarmCluster(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_removeServerFromSwarmCluster(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().RemoveServerFromSwarmCluster(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_removeServerFromSwarmCluster(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_removeServerFromSwarmCluster_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_enableProxyOnServer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_enableProxyOnServer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().EnableProxyOnServer(rctx, fc.Args["id"].(uint), fc.Args["type"].(model.ProxyType))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_enableProxyOnServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_enableProxyOnServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_disableProxyOnServer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_disableProxyOnServer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DisableProxyOnServer(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_disableProxyOnServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_disableProxyOnServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_fetchAnalyticsServiceToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_fetchAnalyticsServiceToken(ctx, field)
 	if err != nil {
@@ -19131,81 +17691,6 @@ func (ec *executionContext) fieldContext_Mutation_changeServerIpAddress(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_changeServerIpAddress_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_changeServerSSHPort(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_changeServerSSHPort(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().ChangeServerSSHPort(rctx, fc.Args["id"].(uint), fc.Args["port"].(int))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_changeServerSSHPort(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_changeServerSSHPort_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -24279,70 +22764,6 @@ func (ec *executionContext) fieldContext_Query_server(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_publicSSHKey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_publicSSHKey(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().PublicSSHKey(rctx)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(string); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_publicSSHKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_serverResourceAnalytics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_serverResourceAnalytics(ctx, field)
 	if err != nil {
@@ -24689,87 +23110,6 @@ func (ec *executionContext) fieldContext_Query_serverLatestDiskUsage(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_serverLatestDiskUsage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_networkInterfacesOnServer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_networkInterfacesOnServer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().NetworkInterfacesOnServer(rctx, fc.Args["id"].(uint))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*model.NetworkInterface); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model.NetworkInterface`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.NetworkInterface)
-	fc.Result = res
-	return ec.marshalNNetworkInterface2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNetworkInterfaceᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_networkInterfacesOnServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext_NetworkInterface_name(ctx, field)
-			case "ip":
-				return ec.fieldContext_NetworkInterface_ip(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type NetworkInterface", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_networkInterfacesOnServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -34484,94 +32824,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "testSSHAccessToServer":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_testSSHAccessToServer(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "checkDependenciesOnServer":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_checkDependenciesOnServer(ctx, field)
-			})
-		case "installDependenciesOnServer":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_installDependenciesOnServer(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "setupServer":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_setupServer(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "promoteServerToManager":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_promoteServerToManager(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "demoteServerToWorker":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_demoteServerToWorker(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "restrictDeploymentOnServer":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_restrictDeploymentOnServer(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "allowDeploymentOnServer":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_allowDeploymentOnServer(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "putServerInMaintenanceMode":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_putServerInMaintenanceMode(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "putServerOutOfMaintenanceMode":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_putServerOutOfMaintenanceMode(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "removeServerFromSwarmCluster":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_removeServerFromSwarmCluster(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "enableProxyOnServer":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_enableProxyOnServer(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "disableProxyOnServer":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_disableProxyOnServer(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "fetchAnalyticsServiceToken":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_fetchAnalyticsServiceToken(ctx, field)
@@ -34582,13 +32834,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "changeServerIpAddress":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_changeServerIpAddress(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "changeServerSSHPort":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_changeServerSSHPort(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -35919,28 +34164,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "publicSSHKey":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_publicSSHKey(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "serverResourceAnalytics":
 			field := field
 
@@ -36017,28 +34240,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_serverLatestDiskUsage(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "networkInterfacesOnServer":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_networkInterfacesOnServer(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -38000,16 +36201,6 @@ func (ec *executionContext) unmarshalNCustomSSLInput2githubᚗcomᚋswiftwaveᚑ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDependency2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDependency(ctx context.Context, sel ast.SelectionSet, v *model.Dependency) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Dependency(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNDeployment2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeployment(ctx context.Context, sel ast.SelectionSet, v model.Deployment) graphql.Marshaler {
 	return ec._Deployment(ctx, sel, &v)
 }
@@ -38641,60 +36832,6 @@ func (ec *executionContext) marshalNNFSConfig2ᚖgithubᚗcomᚋswiftwaveᚑorg�
 func (ec *executionContext) unmarshalNNFSConfigInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNFSConfigInput(ctx context.Context, v interface{}) (*model.NFSConfigInput, error) {
 	res, err := ec.unmarshalInputNFSConfigInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNNetworkInterface2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNetworkInterfaceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.NetworkInterface) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNNetworkInterface2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNetworkInterface(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNNetworkInterface2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNetworkInterface(ctx context.Context, sel ast.SelectionSet, v *model.NetworkInterface) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._NetworkInterface(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNNewServerInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNewServerInput(ctx context.Context, v interface{}) (model.NewServerInput, error) {
@@ -39383,11 +37520,6 @@ func (ec *executionContext) marshalNServerResourceAnalyticsTimeframe2githubᚗco
 	return v
 }
 
-func (ec *executionContext) unmarshalNServerSetupInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerSetupInput(ctx context.Context, v interface{}) (model.ServerSetupInput, error) {
-	res, err := ec.unmarshalInputServerSetupInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNServerStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerStatus(ctx context.Context, v interface{}) (model.ServerStatus, error) {
 	var res model.ServerStatus
 	err := res.UnmarshalGQL(v)
@@ -39899,53 +38031,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
-}
-
-func (ec *executionContext) marshalODependency2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDependencyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Dependency) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNDependency2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDependency(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalODockerConfigBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigBuildArg(ctx context.Context, sel ast.SelectionSet, v []*model.DockerConfigBuildArg) graphql.Marshaler {

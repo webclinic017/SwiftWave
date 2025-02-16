@@ -95,31 +95,15 @@ extend type Query {
     noOfPreparedServers: Int! @isAuthenticated
     servers: [Server!] @isAuthenticated
     server(id: Uint!): Server! @isAuthenticated
-    publicSSHKey: String! @isAuthenticated
     serverResourceAnalytics(id: Uint!, timeframe: ServerResourceAnalyticsTimeframe!): [ServerResourceAnalytics!]! @isAuthenticated
     serverDiskUsage(id: Uint!): [ServerDisksUsage!]! @isAuthenticated # return last 1000 records
     serverLatestResourceAnalytics(id: Uint!): ServerResourceAnalytics! @isAuthenticated
     serverLatestDiskUsage(id: Uint!): ServerDisksUsage! @isAuthenticated
-    networkInterfacesOnServer(id: Uint!): [NetworkInterface!]! @isAuthenticated
 }
 
 extend type Mutation {
     createServer(input: NewServerInput!): Server! @isAuthenticated
     deleteServer(id: Uint!): Boolean! @isAuthenticated
-    testSSHAccessToServer(id: Uint!): Boolean! @isAuthenticated
-    checkDependenciesOnServer(id: Uint!): [Dependency!] @isAuthenticated
-    installDependenciesOnServer(id: Uint!): Boolean! @isAuthenticated
-    setupServer(input: ServerSetupInput!): Boolean! @isAuthenticated
-    promoteServerToManager(id: Uint!): Boolean! @isAuthenticated
-    demoteServerToWorker(id: Uint!): Boolean! @isAuthenticated
-    restrictDeploymentOnServer(id: Uint!): Boolean! @isAuthenticated
-    allowDeploymentOnServer(id: Uint!): Boolean! @isAuthenticated
-    putServerInMaintenanceMode(id: Uint!): Boolean! @isAuthenticated
-    putServerOutOfMaintenanceMode(id: Uint!): Boolean! @isAuthenticated
-    removeServerFromSwarmCluster(id: Uint!): Boolean! @isAuthenticated
-    enableProxyOnServer(id: Uint!, type: ProxyType!): Boolean! @isAuthenticated
-    disableProxyOnServer(id: Uint!): Boolean! @isAuthenticated
     fetchAnalyticsServiceToken(id: Uint!, rotate:Boolean!): String! @isAuthenticated
     changeServerIpAddress(id: Uint!, ip: String!): Boolean! @isAuthenticated
-    changeServerSSHPort(id: Uint!, port: Int!): Boolean! @isAuthenticated
 }
